@@ -757,7 +757,7 @@ export default function TVDisplay({
                             <h3
                               className="font-poppins font-bold uppercase tracking-widest text-[#D4AF37] leading-none mb-0 gold-gradient"
                               style={{
-                                fontSize: labelFontSize ? `clamp(10px, ${labelFontSize}px, 20cqh)` : "clamp(12px, 15cqh, 24px)",
+                                fontSize: labelFontSize ? `clamp(10px, ${labelFontSize}px, min(20cqh, 10cqw))` : "clamp(12px, min(15cqh, 8cqw), 24px)",
                               }}
                             >
                               {item.label}
@@ -765,19 +765,19 @@ export default function TVDisplay({
                             {/* HUGE Rate Typography */}
                             <div className="flex items-stretch w-full min-h-0 shrink mt-0">
                               {/* Left: SALE */}
-                              <div className="flex-1 flex flex-col items-center justify-center px-1">
+                              <div className="flex-1 flex flex-col items-center justify-center px-1 @container">
                                 <span
                                   className="text-[#FFD700] font-poppins uppercase font-black tracking-[0.1em] border-b border-[#FFD700]/30 pb-0.5 w-full text-center mb-0.5"
                                   style={{
-                                    fontSize: saleTitleFontSize ? `clamp(6px, ${saleTitleFontSize}px, 10cqh)` : "clamp(8px, 10cqh, 14px)",
+                                    fontSize: saleTitleFontSize ? `clamp(6px, ${saleTitleFontSize}px, min(10cqh, 15cqw))` : "clamp(8px, min(10cqh, 15cqw), 14px)",
                                   }}
                                 >
                                   SALE
                                 </span>
                                 <span
-                                  className="font-poppins font-black tracking-tight leading-none gold-gradient"
+                                  className="font-poppins font-black tracking-tight leading-none whitespace-nowrap gold-gradient whitespace-nowrap"
                                   style={{
-                                    fontSize: rateFontSize ? `clamp(12px, ${rateFontSize}px, 35cqh)` : "clamp(14px, 35cqh, 48px)",
+                                    fontSize: rateFontSize ? `clamp(12px, ${rateFontSize}px, min(35cqh, 20cqw))` : "clamp(14px, min(35cqh, 18cqw), 48px)",
                                   }}
                                 >
                                   {formatPrice(item.value, false)}
@@ -790,20 +790,20 @@ export default function TVDisplay({
                               {/* Middle: EXCHANGE (only if available) */}
                               {item.exchangeValue && item.exchangeValue > 0 ? (
                                 <>
-                                  <div className="flex-1 flex flex-col items-center justify-center px-1">
+                                  <div className="flex-1 flex flex-col items-center justify-center px-1 @container">
                                     <span
                                       className={`${accentColor} font-poppins uppercase font-black tracking-[0.1em] border-b pb-0.5 w-full text-center mb-0.5`}
                                       style={{
                                         borderBottomColor: 'currentColor',
-                                        fontSize: saleTitleFontSize ? `clamp(6px, ${saleTitleFontSize}px, 10cqh)` : "clamp(8px, 10cqh, 14px)",
+                                        fontSize: saleTitleFontSize ? `clamp(6px, ${saleTitleFontSize}px, min(10cqh, 15cqw))` : "clamp(8px, min(10cqh, 15cqw), 14px)",
                                       }}
                                     >
                                       EXCHANGE
                                     </span>
                                     <span
-                                      className={`font-poppins font-black tracking-tight leading-none ${accentColor}`}
+                                      className={`font-poppins font-black tracking-tight leading-none whitespace-nowrap ${accentColor} whitespace-nowrap`}
                                       style={{
-                                        fontSize: rateFontSize ? `clamp(12px, ${rateFontSize}px, 35cqh)` : "clamp(14px, 35cqh, 48px)",
+                                        fontSize: rateFontSize ? `clamp(12px, ${rateFontSize}px, min(35cqh, 20cqw))` : "clamp(14px, min(35cqh, 18cqw), 48px)",
                                       }}
                                     >
                                       {formatPrice(item.exchangeValue, false)}
@@ -816,19 +816,19 @@ export default function TVDisplay({
                               ) : null}
 
                               {/* Right: PURCHASE */}
-                              <div className="flex-1 flex flex-col items-center justify-center px-1">
+                              <div className="flex-1 flex flex-col items-center justify-center px-1 @container">
                                 <span
                                   className="text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] border-b border-zinc-400/30 pb-0.5 w-full text-center mb-0.5"
                                   style={{
-                                    fontSize: purchaseTitleFontSize ? `clamp(6px, ${purchaseTitleFontSize}px, 10cqh)` : "clamp(8px, 10cqh, 14px)",
+                                    fontSize: purchaseTitleFontSize ? `clamp(6px, ${purchaseTitleFontSize}px, min(10cqh, 15cqw))` : "clamp(8px, min(10cqh, 15cqw), 14px)",
                                   }}
                                 >
                                   PURCHASE
                                 </span>
                                 <span
-                                  className="font-poppins font-black tracking-tight leading-none text-zinc-300"
+                                  className="font-poppins font-black tracking-tight leading-none whitespace-nowrap text-zinc-300"
                                   style={{
-                                    fontSize: purchaseRateFontSize ? `clamp(12px, ${purchaseRateFontSize}px, 35cqh)` : "clamp(14px, 35cqh, 48px)",
+                                    fontSize: purchaseRateFontSize ? `clamp(12px, ${purchaseRateFontSize}px, min(35cqh, 20cqw))` : "clamp(14px, min(35cqh, 18cqw), 48px)",
                                   }}
                                 >
                                   {formatPrice(
@@ -915,7 +915,7 @@ export default function TVDisplay({
                             <h3
                               className={`font-poppins font-bold uppercase tracking-widest leading-none mb-0 silver-gradient`}
                               style={{
-                                fontSize: labelFontSize ? `clamp(10px, ${labelFontSize}px, 20cqh)` : "clamp(12px, 15cqh, 24px)",
+                                fontSize: labelFontSize ? `clamp(10px, ${labelFontSize}px, min(20cqh, 10cqw))` : "clamp(12px, min(15cqh, 8cqw), 24px)",
                               }}
                             >
                               {item.label}
@@ -923,23 +923,19 @@ export default function TVDisplay({
                             {/* HUGE Rate Typography */}
                             <div className="flex items-stretch w-full min-h-0 shrink mt-0">
                               {/* Left: SALE */}
-                              <div className="flex-1 flex flex-col items-center justify-center px-1">
+                              <div className="flex-1 flex flex-col items-center justify-center px-1 @container">
                                 <span
                                   className="text-[#E5E4E2] font-poppins uppercase font-black tracking-[0.1em] border-b border-[#E5E4E2]/30 pb-0.5 w-full text-center mb-0.5"
                                   style={{
-                                    fontSize: saleTitleFontSize ? `clamp(6px, ${saleTitleFontSize}px, 10cqh)` : "clamp(8px, 10cqh, 14px)",
+                                    fontSize: saleTitleFontSize ? `clamp(6px, ${saleTitleFontSize}px, min(10cqh, 15cqw))` : "clamp(8px, min(10cqh, 15cqw), 14px)",
                                   }}
                                 >
                                   SALE RATE
                                 </span>
                                 <span
-                                  className={`font-poppins font-black tracking-tight leading-none ${
-                                    item.key === "silver"
-                                      ? "text-[#ededed]"
-                                      : "text-[#E5E4E2]"
-                                  }`}
+                                  className={`font-poppins font-black tracking-tight leading-none whitespace-nowrap ${item.key === "silver" ? "text-[#ededed]" : "text-[#E5E4E2]"}`}
                                   style={{
-                                    fontSize: rateFontSize ? `clamp(12px, ${rateFontSize}px, 35cqh)` : "clamp(14px, 35cqh, 48px)",
+                                    fontSize: rateFontSize ? `clamp(12px, ${rateFontSize}px, min(35cqh, 20cqw))` : "clamp(14px, min(35cqh, 18cqw), 48px)",
                                   }}
                                 >
                                   {formatPrice(item.value, isSilver)}
@@ -950,19 +946,19 @@ export default function TVDisplay({
                               <div className="w-[3px] rounded-full bg-[#FFFFFF] opacity-80 shrink-0 my-2"></div>
 
                               {/* Right: PURCHASE */}
-                              <div className="flex-1 flex flex-col items-center justify-center px-1">
+                              <div className="flex-1 flex flex-col items-center justify-center px-1 @container">
                                 <span
                                   className="text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] border-b border-zinc-400/30 pb-0.5 w-full text-center mb-0.5"
                                   style={{
-                                    fontSize: purchaseTitleFontSize ? `clamp(6px, ${purchaseTitleFontSize}px, 10cqh)` : "clamp(8px, 10cqh, 14px)",
+                                    fontSize: purchaseTitleFontSize ? `clamp(6px, ${purchaseTitleFontSize}px, min(10cqh, 15cqw))` : "clamp(8px, min(10cqh, 15cqw), 14px)",
                                   }}
                                 >
                                   PURCHASE RATE
                                 </span>
                                 <span
-                                  className={`font-poppins font-black tracking-tight leading-none ${item.key === "silver" ? "text-[#ededed]" : "text-zinc-400"}`}
+                                  className={`font-poppins font-black tracking-tight leading-none whitespace-nowrap ${item.key === "silver" ? "text-[#ededed]" : "text-zinc-400"}`}
                                   style={{
-                                    fontSize: purchaseRateFontSize ? `clamp(12px, ${purchaseRateFontSize}px, 35cqh)` : "clamp(14px, 35cqh, 48px)",
+                                    fontSize: purchaseRateFontSize ? `clamp(12px, ${purchaseRateFontSize}px, min(35cqh, 20cqw))` : "clamp(14px, min(35cqh, 18cqw), 48px)",
                                   }}
                                 >
                                   {formatPrice(

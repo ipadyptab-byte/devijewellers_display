@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <script src="https://cdn.tailwindcss.com?plugins=container-queries"></script>
+</head>
+<body>
+  <div class="h-[200px] w-[500px] bg-gray-200 @container flex p-4 gap-2">
+    <div class="flex-1 bg-red-200 @container flex items-center justify-center">
+      <span class="text-[min(30cqh,20cqw)] font-bold text-black whitespace-nowrap">2,50,000</span>
+    </div>
+    <div class="flex-1 bg-blue-200 @container flex items-center justify-center">
+      <span class="text-[min(30cqh,20cqw)] font-bold text-black whitespace-nowrap">1,50,000</span>
+    </div>
+  </div>
+</body>
+</html>
