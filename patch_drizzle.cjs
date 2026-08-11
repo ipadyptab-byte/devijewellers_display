@@ -1,4 +1,8 @@
-import { defineConfig } from "drizzle-kit";
+const fs = require('fs');
+
+let config = fs.readFileSync('src/db/drizzle.config.ts', 'utf-8');
+
+config = `import { defineConfig } from "drizzle-kit";
 import * as dotenv from "dotenv";
 
 dotenv.config();
@@ -32,3 +36,7 @@ export default defineConfig({
   },
   verbose: true,
 });
+`;
+
+fs.writeFileSync('src/db/drizzle.config.ts', config);
+console.log("Patched drizzle config");
