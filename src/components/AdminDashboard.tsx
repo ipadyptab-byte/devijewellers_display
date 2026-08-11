@@ -1260,7 +1260,7 @@ export default function AdminDashboard({
                 <div className="grid grid-cols-2 gap-2 mt-2" id="preview-rate-grid">
                   {[
                     { key: 'gold24k', label: '24K Gold', value: rates.gold24k, sub: '99.9% Hallmark' },
-                    { key: 'gold22k', label: '22K Gold', value: rates.gold22k, sub: '91.6% Fine' },
+                    { key: 'gold22k', label: '22K Gold', value: rates.gold22k, exchangeValue: rates.gold22kExchange, sub: '91.6% Fine' },
                     { key: 'silver', label: 'Silver', value: rates.silver, sub: '99% Pure Bullion' },
                     { key: 'platinum', label: 'Platinum Pt950', value: rates.platinum, sub: '95% Pure' },
                   ].filter((x) => visibleRates.includes(x.key)).map((x) => (
@@ -1274,7 +1274,6 @@ export default function AdminDashboard({
                     >
                       {/* Accent strip */}
                       <div className="absolute top-0 left-0 right-0 h-0.5" style={{ backgroundColor: customGoldColor }} />
-
                       <div className="text-left">
                         <span className="text-[7.5px] font-bold block" style={{ color: customGoldColor }}>
                           {x.label}
@@ -1283,18 +1282,24 @@ export default function AdminDashboard({
                           {x.sub}
                         </span>
                       </div>
-
                       <div className="flex justify-between items-end mt-1">
-                        <span 
-                          className="font-mono text-white font-bold block"
-                          style={{ 
-                            fontSize: x.key.startsWith('gold') 
-                              ? `${goldFontSize * 0.35}px` 
-                              : `${silverFontSize * 0.35}px` 
-                          }}
-                        >
-                          {formatPrice(x.value, x.label.includes('Silver'))}
-                        </span>
+                        <div className="flex flex-col">
+                          {x.exchangeValue ? (
+                            <span className="text-[5.5px] text-zinc-400 font-mono tracking-tighter block mb-0.5" style={{ color: customGoldColor }}>
+                              EXC: {formatPrice(x.exchangeValue, false)}
+                            </span>
+                          ) : null}
+                          <span 
+                            className="font-mono text-white font-bold block leading-none"
+                            style={{ 
+                              fontSize: x.key.startsWith('gold') 
+                                ? `${goldFontSize * 0.35}px` 
+                                : `${silverFontSize * 0.35}px` 
+                            }}
+                          >
+                            SALE: {formatPrice(x.value, x.label.includes('Silver'))}
+                          </span>
+                        </div>
                         <span className="text-[5.5px] text-emerald-400 font-mono tracking-tighter block flex items-center gap-0.5">
                           ▲ up
                         </span>

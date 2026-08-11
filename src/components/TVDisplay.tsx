@@ -328,6 +328,7 @@ export default function TVDisplay({
       rating: "91.6% Hallmark (KDM)",
       label: "22K Gold",
       value: rates.gold22k,
+      exchangeValue: rates.gold22kExchange,
       purchaseValue: rates.gold22kPurchase,
       trend: trends.gold22k,
       unit: "/ 10 gm",
@@ -348,6 +349,7 @@ export default function TVDisplay({
       rating: "75.0% Purity Alloy",
       label: "18K Gold",
       value: rates.gold18k,
+      exchangeValue: rates.gold18kExchange,
       purchaseValue: rates.gold18kPurchase,
       trend: trends.gold18k,
       unit: "/ 10 gm",
@@ -758,17 +760,17 @@ export default function TVDisplay({
                                   style={{
                                     fontSize: saleTitleFontSize
                                       ? `${saleTitleFontSize}px`
-                                      : "clamp(10px,1.5vh,16px)",
+                                      : "clamp(8px,1.2vh,14px)",
                                   }}
                                 >
-                                  SALE RATE
+                                  SALE
                                 </span>
                                 <span
                                   className="font-poppins font-black tracking-tight leading-none gold-gradient"
                                   style={{
                                     fontSize: rateFontSize
                                       ? `${rateFontSize}px`
-                                      : "clamp(18px, min(5vw, 6vh), 64px)",
+                                      : "clamp(16px, min(4.5vw, 5.5vh), 52px)",
                                   }}
                                 >
                                   {formatPrice(item.value, false)}
@@ -776,7 +778,39 @@ export default function TVDisplay({
                               </div>
 
                               {/* Divider */}
-                              <div className="w-[3px] rounded-full bg-[#FFFFFF] opacity-80 shrink-0 my-2"></div>
+                              <div className="w-[2px] rounded-full bg-[#FFFFFF] opacity-50 shrink-0 my-3"></div>
+
+                              {/* Middle: EXCHANGE (only if available) */}
+                              {item.exchangeValue && item.exchangeValue > 0 ? (
+                                <>
+                                  <div className="flex-1 flex flex-col items-center justify-center px-1">
+                                    <span
+                                      className={`${accentColor} font-poppins uppercase font-black tracking-[0.1em] border-b pb-0.5 w-full text-center mb-0.5`}
+                                      style={{
+                                        borderBottomColor: 'currentColor',
+                                        fontSize: saleTitleFontSize
+                                          ? `${saleTitleFontSize}px`
+                                          : "clamp(8px,1.2vh,14px)",
+                                      }}
+                                    >
+                                      EXCHANGE
+                                    </span>
+                                    <span
+                                      className={`font-poppins font-black tracking-tight leading-none ${accentColor}`}
+                                      style={{
+                                        fontSize: rateFontSize
+                                          ? `${rateFontSize}px`
+                                          : "clamp(16px, min(4.5vw, 5.5vh), 52px)",
+                                      }}
+                                    >
+                                      {formatPrice(item.exchangeValue, false)}
+                                    </span>
+                                  </div>
+
+                                  {/* Divider */}
+                                  <div className="w-[2px] rounded-full bg-[#FFFFFF] opacity-50 shrink-0 my-3"></div>
+                                </>
+                              ) : null}
 
                               {/* Right: PURCHASE */}
                               <div className="flex-1 flex flex-col items-center justify-center px-1">
@@ -785,17 +819,17 @@ export default function TVDisplay({
                                   style={{
                                     fontSize: purchaseTitleFontSize
                                       ? `${purchaseTitleFontSize}px`
-                                      : "clamp(10px,1.5vh,16px)",
+                                      : "clamp(8px,1.2vh,14px)",
                                   }}
                                 >
-                                  PURCHASE RATE
+                                  PURCHASE
                                 </span>
                                 <span
                                   className="font-poppins font-black tracking-tight leading-none text-zinc-300"
                                   style={{
                                     fontSize: purchaseRateFontSize
                                       ? `${purchaseRateFontSize}px`
-                                      : "clamp(18px, min(5vw, 6vh), 64px)",
+                                      : "clamp(16px, min(4.5vw, 5.5vh), 52px)",
                                   }}
                                 >
                                   {formatPrice(

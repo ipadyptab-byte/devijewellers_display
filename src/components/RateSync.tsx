@@ -47,8 +47,10 @@ export default function RateSync({
     platinumPurchaseOffset: 4000,
     gold24kPurMult: 0.985,
     gold22kSaleMult: 0.920,
+    gold22kExcMult: 0.910,
     gold22kPurMult: 0.900,
     gold18kSaleMult: 0.860,
+    gold18kExcMult: 0.830,
     gold18kPurMult: 0.800,
     enableAutoSync: true,
     storeRatesInDb: true,
@@ -84,8 +86,10 @@ export default function RateSync({
             platinumPurchaseOffset: data.platinumPurchaseOffset || 4000,
             gold24kPurMult: data.gold24kPurMult !== undefined ? data.gold24kPurMult : 0.985,
             gold22kSaleMult: data.gold22kSaleMult !== undefined ? data.gold22kSaleMult : 0.920,
+            gold22kExcMult: data.gold22kExcMult !== undefined ? data.gold22kExcMult : 0.910,
             gold22kPurMult: data.gold22kPurMult !== undefined ? data.gold22kPurMult : 0.900,
             gold18kSaleMult: data.gold18kSaleMult !== undefined ? data.gold18kSaleMult : 0.860,
+            gold18kExcMult: data.gold18kExcMult !== undefined ? data.gold18kExcMult : 0.830,
             gold18kPurMult: data.gold18kPurMult !== undefined ? data.gold18kPurMult : 0.800,
             enableAutoSync: data.enableAutoSync !== false,
             storeRatesInDb: data.storeRatesInDb !== false,
@@ -388,6 +392,22 @@ export default function RateSync({
 
               <div>
                 <label className="block text-[11px] font-mono text-[#D4AF37] uppercase tracking-widest mb-1.5 flex justify-between items-center">
+                  <span>22K Exc. Multiplier</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-zinc-500 font-mono text-sm">×</span>
+                  <input 
+                    type="number" 
+                    step="0.001"
+                    value={calcSettings.gold22kExcMult}
+                    onChange={(e)=>setCalcSettings({...calcSettings, gold22kExcMult: parseFloat(e.target.value) || 0})}
+                    className="w-full bg-[#0B0B0D] border border-zinc-700 focus:border-[#D4AF37] rounded p-2.5 pl-7 font-mono text-white text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono text-[#D4AF37] uppercase tracking-widest mb-1.5 flex justify-between items-center">
                   <span>22K Pur. Multiplier</span>
                 </label>
                 <div className="relative">
@@ -413,6 +433,22 @@ export default function RateSync({
                     step="0.001"
                     value={calcSettings.gold18kSaleMult}
                     onChange={(e)=>setCalcSettings({...calcSettings, gold18kSaleMult: parseFloat(e.target.value) || 0})}
+                    className="w-full bg-[#0B0B0D] border border-zinc-700 focus:border-[#D4AF37] rounded p-2.5 pl-7 font-mono text-white text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono text-[#D4AF37] uppercase tracking-widest mb-1.5 flex justify-between items-center">
+                  <span>18K Exc. Multiplier</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-zinc-500 font-mono text-sm">×</span>
+                  <input 
+                    type="number" 
+                    step="0.001"
+                    value={calcSettings.gold18kExcMult}
+                    onChange={(e)=>setCalcSettings({...calcSettings, gold18kExcMult: parseFloat(e.target.value) || 0})}
                     className="w-full bg-[#0B0B0D] border border-zinc-700 focus:border-[#D4AF37] rounded p-2.5 pl-7 font-mono text-white text-sm"
                   />
                 </div>
@@ -481,6 +517,10 @@ export default function RateSync({
               <span className="font-serif font-black text-lg text-[#D4AF37]">{formatPrice(Math.round(baseGold24k * calcSettings.gold22kSaleMult))}</span>
             </div>
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors">
+              <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest">22K Exchange</span>
+              <span className="font-serif font-black text-lg text-white">{formatPrice(Math.round(baseGold24k * calcSettings.gold22kExcMult))}</span>
+            </div>
+            <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors sm:col-span-2">
               <span className="font-mono text-xs text-zinc-500 uppercase tracking-widest">22K Purchase</span>
               <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(Math.round(baseGold24k * calcSettings.gold22kPurMult) || 0)}</span>
             </div>
@@ -491,6 +531,10 @@ export default function RateSync({
               <span className="font-serif font-black text-lg text-[#D4AF37]">{formatPrice(Math.round(baseGold24k * calcSettings.gold18kSaleMult))}</span>
             </div>
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors">
+              <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest">18K Exchange</span>
+              <span className="font-serif font-black text-lg text-white">{formatPrice(Math.round(baseGold24k * calcSettings.gold18kExcMult))}</span>
+            </div>
+            <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors sm:col-span-2">
               <span className="font-mono text-xs text-zinc-500 uppercase tracking-widest">18K Purchase</span>
               <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(Math.round(baseGold24k * calcSettings.gold18kPurMult) || 0)}</span>
             </div>

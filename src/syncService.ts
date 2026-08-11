@@ -77,15 +77,19 @@ export const syncRates = async () => {
 
     const m24kPur = settings.gold24kPurMult ?? 0.985;
     const m22kSale = settings.gold22kSaleMult ?? 0.920;
+    const m22kExc = settings.gold22kExcMult ?? 0.910;
     const m22kPur = settings.gold22kPurMult ?? 0.900;
     const m18kSale = settings.gold18kSaleMult ?? 0.860;
+    const m18kExc = settings.gold18kExcMult ?? 0.830;
     const m18kPur = settings.gold18kPurMult ?? 0.800;
 
     const gold24kSale = Math.round(raw24k);
     const gold24kPurchase = Math.round(gold24kSale * m24kPur);
     const gold22kSale = Math.round(gold24kSale * m22kSale);
+    const gold22kExchange = Math.round(gold24kSale * m22kExc);
     const gold22kPurchase = Math.round(gold24kSale * m22kPur);
     const gold18kSale = Math.round(gold24kSale * m18kSale);
+    const gold18kExchange = Math.round(gold24kSale * m18kExc);
     const gold18kPurchase = Math.round(gold24kSale * m18kPur);
     
     const silverSale = Math.round(rawSilver);
@@ -98,8 +102,10 @@ export const syncRates = async () => {
       gold24kSale,
       gold24kPurchase,
       gold22kSale,
+      gold22kExchange,
       gold22kPurchase,
       gold18kSale,
+      gold18kExchange,
       gold18kPurchase,
       silverSale,
       silverPurchase,
@@ -124,8 +130,10 @@ export const syncRates = async () => {
             lastRate.gold24kSale === rateData.gold24kSale &&
             lastRate.gold24kPurchase === rateData.gold24kPurchase &&
             lastRate.gold22kSale === rateData.gold22kSale &&
+            lastRate.gold22kExchange === rateData.gold22kExchange &&
             lastRate.gold22kPurchase === rateData.gold22kPurchase &&
             lastRate.gold18kSale === rateData.gold18kSale &&
+            lastRate.gold18kExchange === rateData.gold18kExchange &&
             lastRate.gold18kPurchase === rateData.gold18kPurchase &&
             lastRate.silverSale === rateData.silverSale &&
             lastRate.silverPurchase === rateData.silverPurchase &&

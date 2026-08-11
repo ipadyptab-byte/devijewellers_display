@@ -67,7 +67,25 @@ export default function MobileControl({
 
   const handleRateInputChange = (key: keyof JewelleryRates, val: string) => {
     const num = parseFloat(val) || 0;
-    setEditRates(prev => ({ ...prev, [key]: num }));
+    setEditRates(prev => {
+      const next = { ...prev, [key]: num };
+      
+      // Real-time sync for Exchange and Purchase based on Sell Rate changes
+      if (key === 'gold24k' && num > 0) {
+         next.gold24kPurchase = Math.round(num - 200);
+      } else if (key === 'gold22k' && num > 0) {
+         next.gold22kExchange = Math.round(num - 50);
+         next.gold22kPurchase = Math.round(num - 200);
+      } else if (key === 'gold20k' && num > 0) {
+         next.gold20kPurchase = Math.round(num - 200);
+      } else if (key === 'gold18k' && num > 0) {
+         next.gold18kExchange = Math.round(num - 50);
+         next.gold18kPurchase = Math.round(num - 200);
+      } else if (key === 'silver' && num > 0) {
+         next.silverPurchase = Math.round(num - 2000);
+      }
+      return next;
+    });
   };
 
   const publishRates = () => {
@@ -209,7 +227,7 @@ export default function MobileControl({
 
             <div>
               <label className="block text-[10px] font-mono text-zinc-400 uppercase tracking-widest mb-1.5 border-b border-zinc-800 pb-1">22K Gold (10gm)</label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <div>
                   <span className="text-[8px] uppercase text-zinc-500 mb-1 block">Sell Rate</span>
                   <div className="relative">
@@ -223,7 +241,27 @@ export default function MobileControl({
                   </div>
                 </div>
                 <div>
-                  <span className="text-[8px] uppercase text-zinc-500 mb-1 block">Purchase Rate</span>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-[8px] uppercase text-zinc-400 block">Exc Rate</span>
+                    <button 
+                      onClick={() => setEditRates(prev => ({...prev, gold22kExchange: Math.round(prev.gold22k - 50)}))}
+                      className="text-[7px] text-amber-400 hover:text-amber-300 bg-amber-400/10 hover:bg-amber-400/20 px-1 py-0.5 rounded border border-amber-400/20 transition-colors flex items-center gap-0.5 leading-none"
+                    >
+                      <RotateCw className="w-2 h-2" /> SYNC
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <span className="absolute left-2 top-2 text-xs text-zinc-400 font-mono">₹</span>
+                    <input 
+                      type="number" 
+                      value={editRates.gold22kExchange || ''} 
+                      onChange={(e) => handleRateInputChange('gold22kExchange', e.target.value)}
+                      className="w-full bg-[#0B0B0D] border border-zinc-800 focus:border-zinc-500 rounded p-1.5 pl-5 text-xs font-mono font-bold text-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <span className="text-[8px] uppercase text-zinc-500 mb-1 block">Pur Rate</span>
                   <div className="relative">
                     <span className="absolute left-2 top-2 text-xs text-zinc-500 font-mono">₹</span>
                     <input 
@@ -269,7 +307,7 @@ export default function MobileControl({
 
             <div>
               <label className="block text-[10px] font-mono text-zinc-400 uppercase tracking-widest mb-1.5 border-b border-zinc-800 pb-1">18K Gold (10gm)</label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <div>
                   <span className="text-[8px] uppercase text-zinc-500 mb-1 block">Sell Rate</span>
                   <div className="relative">
@@ -283,7 +321,27 @@ export default function MobileControl({
                   </div>
                 </div>
                 <div>
-                  <span className="text-[8px] uppercase text-zinc-500 mb-1 block">Purchase Rate</span>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-[8px] uppercase text-zinc-400 block">Exc Rate</span>
+                    <button 
+                      onClick={() => setEditRates(prev => ({...prev, gold18kExchange: Math.round(prev.gold18k - 50)}))}
+                      className="text-[7px] text-amber-400 hover:text-amber-300 bg-amber-400/10 hover:bg-amber-400/20 px-1 py-0.5 rounded border border-amber-400/20 transition-colors flex items-center gap-0.5 leading-none"
+                    >
+                      <RotateCw className="w-2 h-2" /> SYNC
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <span className="absolute left-2 top-2 text-xs text-zinc-400 font-mono">₹</span>
+                    <input 
+                      type="number" 
+                      value={editRates.gold18kExchange || ''} 
+                      onChange={(e) => handleRateInputChange('gold18kExchange', e.target.value)}
+                      className="w-full bg-[#0B0B0D] border border-zinc-800 focus:border-zinc-500 rounded p-1.5 pl-5 text-xs font-mono font-bold text-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <span className="text-[8px] uppercase text-zinc-500 mb-1 block">Pur Rate</span>
                   <div className="relative">
                     <span className="absolute left-2 top-2 text-xs text-zinc-500 font-mono">₹</span>
                     <input 

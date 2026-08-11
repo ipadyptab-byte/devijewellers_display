@@ -292,17 +292,18 @@ export default function SaleStatus({
     ctx.strokeRect(150, 520, 900, 50);
 
     ctx.fillStyle = accentColor;
-    ctx.font = "bold 22px 'Poppins', sans-serif";
+    ctx.font = "bold 20px 'Poppins', sans-serif";
     ctx.textAlign = 'left';
     ctx.fillText("METAL PURITY CATEGORY", 180, 552);
     ctx.textAlign = 'right';
-    ctx.fillText("LIVE RATE (INR)", 1020, 552);
+    ctx.fillText("EXCHANGE (INR)", 780, 552);
+    ctx.fillText("SALE RATE (INR)", 1020, 552);
 
     // 9. Map eligible items
-    const displayItems: { label: string; sub: string; val: string }[] = [];
+    const displayItems: { label: string; sub: string; val: string; exchangeVal?: string }[] = [];
     if (show24k) displayItems.push({ label: '24K GOLD RATE', sub: '10gm', val: formatINR(rates.gold24k) });
-    if (show22k) displayItems.push({ label: '22K GOLD RATE', sub: '10gm', val: formatINR(rates.gold22k) });
-    if (show18k) displayItems.push({ label: '18K GOLD RATE', sub: '10gm', val: formatINR(rates.gold18k) });
+    if (show22k) displayItems.push({ label: '22K GOLD RATE', sub: '10gm', val: formatINR(rates.gold22k), exchangeVal: formatINR(rates.gold22kExchange || 0) });
+    if (show18k) displayItems.push({ label: '18K GOLD RATE', sub: '10gm', val: formatINR(rates.gold18k), exchangeVal: formatINR(rates.gold18kExchange || 0) });
     if (showSilver) displayItems.push({ label: 'SILVER RATE', sub: '1 kg', val: formatINR(rates.silver) });
     if (showPlatinum) displayItems.push({ label: 'PLATINUM PT950', sub: '10gm', val: formatINR(rates.platinum) });
 
@@ -320,20 +321,28 @@ export default function SaleStatus({
 
       // Label & Sub labels
       ctx.fillStyle = textColor;
-      ctx.font = "bold 50px 'Playfair Display', serif";
+      ctx.font = "bold 46px 'Playfair Display', serif";
       ctx.textAlign = 'left';
       ctx.fillText(item.label, 180, currentY + 15);
 
       ctx.fillStyle = mutedTextColor;
-      ctx.font = "26px 'Poppins', sans-serif";
+      ctx.font = "24px 'Poppins', sans-serif";
       ctx.fillText(item.sub, 180, currentY + 55);
 
-      // Value column
+      // Exchange Value column
+      if (item.exchangeVal && item.exchangeVal !== '₹0') {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = "bold 40px 'Playfair Display', serif";
+        ctx.textAlign = 'right';
+        ctx.fillText(item.exchangeVal, 780, currentY + 30);
+      }
+
+      // Sale Value column
       const valGrad = ctx.createLinearGradient(800, 0, 1020, 0);
       valGrad.addColorStop(0, '#FFFFFF');
       valGrad.addColorStop(1, accentColor);
       ctx.fillStyle = valGrad;
-      ctx.font = "bold 64px 'Playfair Display', serif";
+      ctx.font = "bold 56px 'Playfair Display', serif";
       ctx.textAlign = 'right';
       ctx.fillText(item.val, 1020, currentY + 30);
 
@@ -862,9 +871,20 @@ export default function SaleStatus({
                           <p className="font-serif font-black text-white text-[28px] tracking-wider">22K Gold Rate</p>
                           <p className="text-[16px] text-zinc-300 font-mono mt-0.5 uppercase">10gm</p>
                         </div>
-                        <span className={`text-[32px] font-bold ${previewStyles.priceText}`}>
-                          {formatINR(rates.gold22k)}
-                        </span>
+                        <div className="flex gap-4 text-right">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] text-zinc-500 font-mono uppercase">Exchange</span>
+                            <span className={`text-[24px] font-bold ${previewStyles.priceText}`}>
+                              {formatINR(rates.gold22kExchange || 0)}
+                            </span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className={`text-[10px] ${previewStyles.accent} font-mono uppercase`}>Sale</span>
+                            <span className={`text-[32px] font-bold ${previewStyles.priceText}`}>
+                              {formatINR(rates.gold22k)}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     )}
 
@@ -874,9 +894,20 @@ export default function SaleStatus({
                           <p className="font-serif font-black text-white text-[28px] tracking-wider">18K Gold Rate</p>
                           <p className="text-[16px] text-zinc-300 font-mono mt-0.5 uppercase">10gm</p>
                         </div>
-                        <span className={`text-[32px] font-bold ${previewStyles.priceText}`}>
-                          {formatINR(rates.gold18k)}
-                        </span>
+                        <div className="flex gap-4 text-right">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] text-zinc-500 font-mono uppercase">Exchange</span>
+                            <span className={`text-[24px] font-bold ${previewStyles.priceText}`}>
+                              {formatINR(rates.gold18kExchange || 0)}
+                            </span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className={`text-[10px] ${previewStyles.accent} font-mono uppercase`}>Sale</span>
+                            <span className={`text-[32px] font-bold ${previewStyles.priceText}`}>
+                              {formatINR(rates.gold18k)}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     )}
 

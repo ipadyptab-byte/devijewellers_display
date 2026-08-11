@@ -261,10 +261,12 @@ export default function App() {
           gold24k: received.gold24kSale,
           gold24kPurchase: received.gold24kPurchase,
           gold22k: received.gold22kSale,
+          gold22kExchange: received.gold22kExchange,
           gold22kPurchase: received.gold22kPurchase,
           gold20k: received.gold22kSale - 200, // Legacy fallback
           gold20kPurchase: received.gold22kPurchase - 200,
           gold18k: received.gold18kSale,
+          gold18kExchange: received.gold18kExchange,
           gold18kPurchase: received.gold18kPurchase,
           silver: received.silverSale,
           silverPurchase: received.silverPurchase,
@@ -310,10 +312,12 @@ export default function App() {
             gold24k: received.gold24kSale,
             gold24kPurchase: received.gold24kPurchase,
             gold22k: received.gold22kSale,
+            gold22kExchange: received.gold22kExchange,
             gold22kPurchase: received.gold22kPurchase,
             gold20k: received.gold22kSale - 200,
             gold20kPurchase: received.gold22kPurchase - 200,
             gold18k: received.gold18kSale,
+            gold18kExchange: received.gold18kExchange,
             gold18kPurchase: received.gold18kPurchase,
             silver: received.silverSale,
             silverPurchase: received.silverPurchase,
@@ -355,10 +359,12 @@ export default function App() {
               gold24k: received.gold24kSale,
               gold24kPurchase: received.gold24kPurchase,
               gold22k: received.gold22kSale,
+              gold22kExchange: received.gold22kExchange,
               gold22kPurchase: received.gold22kPurchase,
               gold20k: received.gold22kSale - 200,
               gold20kPurchase: received.gold22kPurchase - 200,
               gold18k: received.gold18kSale,
+              gold18kExchange: received.gold18kExchange,
               gold18kPurchase: received.gold18kPurchase,
               silver: received.silverSale,
               silverPurchase: received.silverPurchase,
@@ -770,7 +776,7 @@ export default function App() {
                 >
                   {systemConfig.logoText || "DEVIJEWELLERS"}
                 </h1>
-                <p className="text-[9px] text-white/70 font-mono uppercase tracking-[0.2em] leading-none mt-0.5 font-bold">
+                <p className="text-[9px] text-white font-mono uppercase tracking-[0.2em] leading-none mt-0.5 font-bold">
                   PRESTIGE ATELIER
                 </p>
               </div>
