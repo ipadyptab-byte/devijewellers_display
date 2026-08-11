@@ -413,7 +413,7 @@ export default function TVDisplay({
   return (
     <div
       id="tv-display-root"
-      className={`w-full text-[#F8F5EE] select-none h-full flex flex-col justify-between font-poppins transition-all duration-700 p-0 relative overflow-hidden ${isRotatingBgActive ? "bg-black" : themeBg}`}
+      className={`w-full text-[#F8F5EE] select-none h-full flex flex-col justify-between font-poppins transition-all duration-700 p-0 relative overflow-y-auto overflow-x-hidden ${isRotatingBgActive ? "bg-black" : themeBg}`}
       style={{
         backgroundColor: isRotatingBgActive
           ? "transparent"
@@ -664,12 +664,12 @@ export default function TVDisplay({
           >
             {/* GOLD RATES COLUMN */}
             {goldRateItems.length > 0 && (
-              <div className="flex flex-col gap-1 w-full h-full min-h-0 shrink">
+              <div className="flex flex-col gap-1 w-full h-full min-h-[min-content]">
                 <div
                   id="tv-gold-rate-grid"
-                  className="flex-1 w-full h-full grid gap-1 md:gap-2 min-h-0 shrink"
+                  className="flex-1 w-full h-full grid gap-1 md:gap-2 min-h-[min-content]"
                   style={{
-                    gridTemplateRows: `repeat(${Math.max(goldRateItems.length, silverRateItems.length)}, minmax(0, 1fr))`,
+                    gridTemplateRows: `repeat(${Math.max(goldRateItems.length, silverRateItems.length)}, minmax(min-content, 1fr))`,
                   }}
                 >
                   {goldRateItems.map((item) => {
@@ -730,7 +730,7 @@ export default function TVDisplay({
                           </div>
 
                           {/* Content Layer */}
-                          <div className="relative h-full flex-1 z-10 px-2 md:px-6 py-0.5 md:py-1 flex flex-col items-center justify-center text-center shrink min-h-0">
+                          <div className="relative h-full flex-1 z-10 px-2 md:px-6 py-2 md:py-3 flex flex-col items-center justify-center text-center min-h-[min-content]">
                             {/* Gold luxury sparkle top-right */}
                             {(item.key === "gold24k" ||
                               item.key === "gold22k") && (
@@ -744,23 +744,19 @@ export default function TVDisplay({
                             <h3
                               className="font-poppins font-bold uppercase tracking-widest text-[#D4AF37] leading-none mb-0 gold-gradient"
                               style={{
-                                fontSize: labelFontSize
-                                  ? `${labelFontSize}px`
-                                  : "clamp(14px, min(3.5vw, 4vh), 32px)",
+                                fontSize: labelFontSize ? `clamp(12px, ${labelFontSize}px, 6vw)` : "clamp(14px, min(3.5vw, 4vh), 32px)",
                               }}
                             >
                               {item.label}
                             </h3>
                             {/* HUGE Rate Typography */}
-                            <div className="flex items-stretch w-full min-h-0 shrink -mt-1 md:-mt-2">
+                            <div className="flex items-stretch w-full min-h-[min-content] mt-1 md:mt-2">
                               {/* Left: SALE */}
                               <div className="flex-1 flex flex-col items-center justify-center px-1">
                                 <span
                                   className="text-[#FFD700] font-poppins uppercase font-black tracking-[0.1em] border-b border-[#FFD700]/30 pb-0.5 w-full text-center mb-0.5"
                                   style={{
-                                    fontSize: saleTitleFontSize
-                                      ? `${saleTitleFontSize}px`
-                                      : "clamp(8px,1.2vh,14px)",
+                                    fontSize: saleTitleFontSize ? `clamp(8px, ${saleTitleFontSize}px, 4vw)` : "clamp(8px,1.2vh,14px)",
                                   }}
                                 >
                                   SALE
@@ -768,9 +764,7 @@ export default function TVDisplay({
                                 <span
                                   className="font-poppins font-black tracking-tight leading-none gold-gradient"
                                   style={{
-                                    fontSize: rateFontSize
-                                      ? `${rateFontSize}px`
-                                      : "clamp(16px, min(4.5vw, 5.5vh), 52px)",
+                                    fontSize: rateFontSize ? `clamp(14px, ${rateFontSize}px, 8vw)` : "clamp(16px, min(4.5vw, 5.5vh), 52px)",
                                   }}
                                 >
                                   {formatPrice(item.value, false)}
@@ -788,9 +782,7 @@ export default function TVDisplay({
                                       className={`${accentColor} font-poppins uppercase font-black tracking-[0.1em] border-b pb-0.5 w-full text-center mb-0.5`}
                                       style={{
                                         borderBottomColor: 'currentColor',
-                                        fontSize: saleTitleFontSize
-                                          ? `${saleTitleFontSize}px`
-                                          : "clamp(8px,1.2vh,14px)",
+                                        fontSize: saleTitleFontSize ? `clamp(8px, ${saleTitleFontSize}px, 4vw)` : "clamp(8px,1.2vh,14px)",
                                       }}
                                     >
                                       EXCHANGE
@@ -798,9 +790,7 @@ export default function TVDisplay({
                                     <span
                                       className={`font-poppins font-black tracking-tight leading-none ${accentColor}`}
                                       style={{
-                                        fontSize: rateFontSize
-                                          ? `${rateFontSize}px`
-                                          : "clamp(16px, min(4.5vw, 5.5vh), 52px)",
+                                        fontSize: rateFontSize ? `clamp(14px, ${rateFontSize}px, 8vw)` : "clamp(16px, min(4.5vw, 5.5vh), 52px)",
                                       }}
                                     >
                                       {formatPrice(item.exchangeValue, false)}
@@ -852,12 +842,12 @@ export default function TVDisplay({
 
             {/* SILVER & OTHER METALS COLUMN */}
             {silverRateItems.length > 0 && (
-              <div className="flex flex-col gap-1 w-full h-full min-h-0 shrink">
+              <div className="flex flex-col gap-1 w-full h-full min-h-[min-content]">
                 <div
                   id="tv-silver-rate-grid"
-                  className="flex-1 w-full h-full grid gap-1 md:gap-2 min-h-0 shrink"
+                  className="flex-1 w-full h-full grid gap-1 md:gap-2 min-h-[min-content]"
                   style={{
-                    gridTemplateRows: `repeat(${Math.max(goldRateItems.length, silverRateItems.length)}, minmax(0, 1fr))`,
+                    gridTemplateRows: `repeat(${Math.max(goldRateItems.length, silverRateItems.length)}, minmax(min-content, 1fr))`,
                   }}
                 >
                   {silverRateItems.map((item) => {
@@ -923,21 +913,19 @@ export default function TVDisplay({
                           </div>
 
                           {/* Content Layer */}
-                          <div className="relative h-full flex-1 z-10 px-2 md:px-6 py-0.5 md:py-1 flex flex-col items-center justify-center text-center shrink min-h-0">
+                          <div className="relative h-full flex-1 z-10 px-2 md:px-6 py-2 md:py-3 flex flex-col items-center justify-center text-center min-h-[min-content]">
                             {/* Live indicator removed as requested */}
 
                             <h3
                               className={`font-poppins font-bold uppercase tracking-widest leading-none mb-0 silver-gradient`}
                               style={{
-                                fontSize: labelFontSize
-                                  ? `${labelFontSize}px`
-                                  : "clamp(14px, min(3.5vw, 4vh), 32px)",
+                                fontSize: labelFontSize ? `clamp(12px, ${labelFontSize}px, 6vw)` : "clamp(14px, min(3.5vw, 4vh), 32px)",
                               }}
                             >
                               {item.label}
                             </h3>
                             {/* HUGE Rate Typography */}
-                            <div className="flex items-stretch w-full min-h-0 shrink -mt-1 md:-mt-2">
+                            <div className="flex items-stretch w-full min-h-[min-content] mt-1 md:mt-2">
                               {/* Left: SALE */}
                               <div className="flex-1 flex flex-col items-center justify-center px-1">
                                 <span

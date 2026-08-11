@@ -42,7 +42,7 @@ export default function RateSync({
 
   // Calculation Settings
   const [calcSettings, setCalcSettings] = useState({
-    syncIntervalMinutes: 1,
+    syncIntervalMinutes: 5,
     silverPurchaseOffset: 5000,
     platinumPurchaseOffset: 4000,
     gold24kPurMult: 0.985,
@@ -81,7 +81,7 @@ export default function RateSync({
       .then(data => {
         if (data && !data.error) {
           setCalcSettings({
-            syncIntervalMinutes: data.syncIntervalMinutes || 1,
+            syncIntervalMinutes: data.syncIntervalMinutes || 5,
             silverPurchaseOffset: data.silverPurchaseOffset || 5000,
             platinumPurchaseOffset: data.platinumPurchaseOffset || 4000,
             gold24kPurMult: data.gold24kPurMult !== undefined ? data.gold24kPurMult : 0.985,
@@ -135,7 +135,7 @@ export default function RateSync({
   
   const resetSettings = () => {
     const defaults = {
-      syncIntervalMinutes: 1,
+      syncIntervalMinutes: 5,
       silverPurchaseOffset: 5000,
       platinumPurchaseOffset: 4000,
       gold24kPurMult: 0.985,

@@ -427,6 +427,14 @@ export default function App() {
   const handleUpdateRates = (newRates: JewelleryRates) => {
     setRates(newRates);
     saveToStorage("rates", newRates);
+    
+    // Also push directly to PostgreSQL backend
+    fetch('/api/rates/manual_push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newRates)
+    }).catch(err => console.error("Failed to push manual rates to backend:", err));
+
     setDoc(
       doc(db, "system", "rates"),
       {

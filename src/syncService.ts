@@ -234,7 +234,7 @@ export const startSyncService = async () => {
     try {
       const settings = await db.select().from(calculationSettings).limit(1).catch(() => []);
       const isAutoSyncEnabled = !settings[0] || settings[0].enableAutoSync !== false;
-      const intervalMinutes = settings[0]?.syncIntervalMinutes || 1;
+      const intervalMinutes = settings[0]?.syncIntervalMinutes || 5;
 
       if (isAutoSyncEnabled) {
         await syncRates().catch(e => console.error("Interval syncRates failed:", e));

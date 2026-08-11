@@ -33,7 +33,7 @@ apiRouter.get("/rates/current", async (req, res) => {
       .from(calculationSettings)
       .limit(1)
       .catch(() => [
-        { syncIntervalMinutes: 1, enableAutoSync: true, storeRatesInDb: true },
+        { syncIntervalMinutes: 5, enableAutoSync: true, storeRatesInDb: true },
       ]);
     const currentSettings = settingsLog[0];
     const isStoreEnabled =
@@ -43,7 +43,7 @@ apiRouter.get("/rates/current", async (req, res) => {
     if (!isStoreEnabled && latestRatesInMemory) {
       // Lazy sync check (only if auto-sync is enabled)
       const lastUpdate = latestRatesInMemory.updatedAt?.getTime() || Date.now();
-      const minutes = currentSettings?.syncIntervalMinutes || 1;
+      const minutes = currentSettings?.syncIntervalMinutes || 5;
       const isAutoSyncEnabled =
         !currentSettings || currentSettings.enableAutoSync !== false;
       const lastAttempt = Math.max(lastUpdate, lastSyncAttemptAt);
@@ -69,7 +69,7 @@ apiRouter.get("/rates/current", async (req, res) => {
     // Lazy sync check (only if enabled)
     if (current[0]) {
       const lastUpdate = current[0].updatedAt?.getTime() || Date.now();
-      const minutes = currentSettings?.syncIntervalMinutes || 1;
+      const minutes = currentSettings?.syncIntervalMinutes || 5;
       const isAutoSyncEnabled =
         !currentSettings || currentSettings.enableAutoSync !== false;
       const lastAttempt = Math.max(lastUpdate, lastSyncAttemptAt);
@@ -110,6 +110,45 @@ apiRouter.get("/rates/current", async (req, res) => {
       ? "Database requires configuration. Please add POSTGRES_URL or DATABASE_URL environment variables to your deployment."
       : error.message || "Internal Server Error";
     res.status(500).json({ error: msg });
+  }
+});
+
+
+apiRouter.post("/rates/manual_push", async (req, res) => {
+  try {
+    const received = req.body;
+    
+    // Map frontend JewelleryRates to DB schema
+    const newDbRow = {
+      gold24kSale: received.gold24k,
+      gold24kPurchase: received.gold24kPurchase || (received.gold24k - 200),
+      gold22kSale: received.gold22k,
+      gold22kExchange: received.gold22kExchange || (received.gold22k - 50),
+      gold22kPurchase: received.gold22kPurchase || (received.gold22k - 200),
+      gold18kSale: received.gold18k,
+      gold18kExchange: received.gold18kExchange || (received.gold18k - 50),
+      gold18kPurchase: received.gold18kPurchase || (received.gold18k - 200),
+      silverSale: received.silver,
+      silverPurchase: received.silverPurchase || (received.silver - 2000),
+      platinumSale: received.platinum,
+      platinumPurchase: received.platinumPurchase || (received.platinum - 4000),
+    };
+
+    const inserted = await db.insert(rates).values(newDbRow).returning();
+    
+    // Broadcast via socket.io
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("rate_update", {
+        type: "sync_success",
+        data: inserted[0],
+      });
+    }
+
+    res.json({ success: true, data: inserted[0] });
+  } catch (err: any) {
+    console.error("Manual push error:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -357,7 +396,7 @@ apiRouter.get("/settings", async (req, res) => {
     );
     res.json(
       current[0] || {
-        syncIntervalMinutes: 1,
+        syncIntervalMinutes: 5,
         silverPurchaseOffset: 5000,
         platinumPurchaseOffset: 4000,
         enableAutoSync: true,
