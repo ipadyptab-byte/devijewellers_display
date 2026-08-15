@@ -240,7 +240,7 @@ const enforceRounding = (r: any): any => {
       loadStateFromApi("media", setMedia, INITIAL_MEDIA);
       loadStateFromApi("promos", setPromos, INITIAL_PROMOS);
       loadStateFromApi("branches", setBranches, INITIAL_BRANCHES);
-    }, 15000);
+    }, 600000); // 10 minutes instead of 15s to save Vercel Free Tier requests
 
     return () => {
       clearInterval(statePoll);
@@ -417,7 +417,7 @@ const enforceRounding = (r: any): any => {
         });
     };
 
-    const intervalMs = (displaySetting?.refreshInterval || 15) * 1000;
+    const intervalMs = 300000; // Poll rates every 5 minutes maximum to save free tier limits. Realtime updates are handled by WebSockets.
     const fallbackPoll = setInterval(fetchCurrentRates, intervalMs);
 
     return () => clearInterval(fallbackPoll);
