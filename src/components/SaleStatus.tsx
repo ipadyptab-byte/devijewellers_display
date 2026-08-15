@@ -296,14 +296,14 @@ export default function SaleStatus({
     ctx.textAlign = 'left';
     ctx.fillText("METAL PURITY CATEGORY", 180, 552);
     ctx.textAlign = 'right';
-    ctx.fillText("EXCHANGE (INR)", 780, 552);
+    
     ctx.fillText("SALE RATE (INR)", 1020, 552);
 
     // 9. Map eligible items
-    const displayItems: { label: string; sub: string; val: string; exchangeVal?: string }[] = [];
-    if (show24k) displayItems.push({ label: '24K GOLD RATE', sub: '10gm', val: formatINR(rates.gold24k), exchangeVal: formatINR(rates.gold24kExchange || (rates.gold24k ? rates.gold24k - 50 : 0)) });
-    if (show22k) displayItems.push({ label: '22K GOLD RATE', sub: '10gm', val: formatINR(rates.gold22k), exchangeVal: formatINR(rates.gold22kExchange || 0) });
-    if (show18k) displayItems.push({ label: '18K GOLD RATE', sub: '10gm', val: formatINR(rates.gold18k), exchangeVal: formatINR(rates.gold18kExchange || 0) });
+    const displayItems: { label: string; sub: string; val: string; }[] = [];
+    if (show24k) displayItems.push({ label: '24K GOLD RATE', sub: '10gm', val: formatINR(rates.gold24k) });
+    if (show22k) displayItems.push({ label: '22K GOLD RATE', sub: '10gm', val: formatINR(rates.gold22k) });
+    if (show18k) displayItems.push({ label: '18K GOLD RATE', sub: '10gm', val: formatINR(rates.gold18k) });
     if (showSilver) displayItems.push({ label: 'SILVER RATE', sub: '1 kg', val: formatINR(rates.silver) });
     if (showPlatinum) displayItems.push({ label: 'PLATINUM PT950', sub: '10gm', val: formatINR(rates.platinum) });
 
@@ -329,13 +329,7 @@ export default function SaleStatus({
       ctx.font = "24px 'Poppins', sans-serif";
       ctx.fillText(item.sub, 180, currentY + 55);
 
-      // Exchange Value column
-      if (item.exchangeVal && item.exchangeVal !== '₹0') {
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = "bold 40px 'Playfair Display', serif";
-        ctx.textAlign = 'right';
-        ctx.fillText(item.exchangeVal, 780, currentY + 30);
-      }
+      
 
       // Sale Value column
       const valGrad = ctx.createLinearGradient(800, 0, 1020, 0);
@@ -872,14 +866,9 @@ export default function SaleStatus({
                           <p className="text-[16px] text-zinc-300 font-mono mt-0.5 uppercase">10gm</p>
                         </div>
                         <div className="flex gap-4 text-right">
+                          
                           <div className="flex flex-col">
-                            <span className="text-[10px] text-zinc-500 font-mono uppercase">Exchange</span>
-                            <span className={`text-[24px] font-bold ${previewStyles.priceText}`}>
-                              {formatINR(rates.gold22kExchange || 0)}
-                            </span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className={`text-[10px] ${previewStyles.accent} font-mono uppercase`}>Sale</span>
+                            
                             <span className={`text-[32px] font-bold ${previewStyles.priceText}`}>
                               {formatINR(rates.gold22k)}
                             </span>
@@ -895,14 +884,9 @@ export default function SaleStatus({
                           <p className="text-[16px] text-zinc-300 font-mono mt-0.5 uppercase">10gm</p>
                         </div>
                         <div className="flex gap-4 text-right">
+                          
                           <div className="flex flex-col">
-                            <span className="text-[10px] text-zinc-500 font-mono uppercase">Exchange</span>
-                            <span className={`text-[24px] font-bold ${previewStyles.priceText}`}>
-                              {formatINR(rates.gold18kExchange || 0)}
-                            </span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className={`text-[10px] ${previewStyles.accent} font-mono uppercase`}>Sale</span>
+                            
                             <span className={`text-[32px] font-bold ${previewStyles.priceText}`}>
                               {formatINR(rates.gold18k)}
                             </span>
