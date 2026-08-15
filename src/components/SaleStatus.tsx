@@ -301,7 +301,7 @@ export default function SaleStatus({
 
     // 9. Map eligible items
     const displayItems: { label: string; sub: string; val: string; exchangeVal?: string }[] = [];
-    if (show24k) displayItems.push({ label: '24K GOLD RATE', sub: '10gm', val: formatINR(rates.gold24k) });
+    if (show24k) displayItems.push({ label: '24K GOLD RATE', sub: '10gm', val: formatINR(rates.gold24k), exchangeVal: formatINR(rates.gold24kExchange || (rates.gold24k ? rates.gold24k - 50 : 0)) });
     if (show22k) displayItems.push({ label: '22K GOLD RATE', sub: '10gm', val: formatINR(rates.gold22k), exchangeVal: formatINR(rates.gold22kExchange || 0) });
     if (show18k) displayItems.push({ label: '18K GOLD RATE', sub: '10gm', val: formatINR(rates.gold18k), exchangeVal: formatINR(rates.gold18kExchange || 0) });
     if (showSilver) displayItems.push({ label: 'SILVER RATE', sub: '1 kg', val: formatINR(rates.silver) });

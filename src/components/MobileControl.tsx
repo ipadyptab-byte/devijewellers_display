@@ -72,6 +72,7 @@ export default function MobileControl({
       
       // Real-time sync for Exchange and Purchase based on Sell Rate changes
       if (key === 'gold24k' && num > 0) {
+         next.gold24kExchange = Math.round(num - 50);
          next.gold24kPurchase = Math.round(num - 200);
       } else if (key === 'gold22k' && num > 0) {
          next.gold22kExchange = Math.round(num - 50);

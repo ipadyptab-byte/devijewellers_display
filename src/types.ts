@@ -5,6 +5,7 @@
 
 export interface JewelleryRates {
   gold24k: number;
+  gold24kExchange?: number;
   gold24kPurchase?: number;
   gold22k: number;
   gold22kExchange?: number;

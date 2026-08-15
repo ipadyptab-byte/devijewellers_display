@@ -1259,7 +1259,7 @@ export default function AdminDashboard({
                 {/* Micro Rates Display Carousel Grid */}
                 <div className="grid grid-cols-2 gap-2 mt-2" id="preview-rate-grid">
                   {[
-                    { key: 'gold24k', label: '24K Gold', value: rates.gold24k, sub: '99.9% Hallmark' },
+                    { key: 'gold24k', label: '24K Gold', value: rates.gold24k, exchangeValue: rates.gold24kExchange || (rates.gold24k ? rates.gold24k - 50 : 0), sub: '99.9% Hallmark' },
                     { key: 'gold22k', label: '22K Gold', value: rates.gold22k, exchangeValue: rates.gold22kExchange, sub: '91.6% Fine' },
                     { key: 'silver', label: 'Silver', value: rates.silver, sub: '99% Pure Bullion' },
                     { key: 'platinum', label: 'Platinum Pt950', value: rates.platinum, sub: '95% Pure' },

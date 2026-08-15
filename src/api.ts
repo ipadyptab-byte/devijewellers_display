@@ -121,6 +121,7 @@ apiRouter.post("/rates/manual_push", async (req, res) => {
     // Map frontend JewelleryRates to DB schema
     const newDbRow = {
       gold24kSale: received.gold24k,
+      gold24kExchange: received.gold24kExchange || (received.gold24k - 50),
       gold24kPurchase: received.gold24kPurchase || (received.gold24k - 200),
       gold22kSale: received.gold22k,
       gold22kExchange: received.gold22kExchange || (received.gold22k - 50),
@@ -258,7 +259,8 @@ apiRouter.get("/init-db", async (req, res) => {
       .catch(() => {});
     await db
       .execute(
-        sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold24k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.985;`,
+        sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold24k_exc_mult DOUBLE PRECISION NOT NULL DEFAULT 0.990;`,
+            sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold24k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.985;`,
       )
       .catch(() => {});
     await db
@@ -345,6 +347,7 @@ apiRouter.get("/settings", async (req, res) => {
           .catch(console.error);
         await db
           .execute(
+            sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold24k_exc_mult DOUBLE PRECISION NOT NULL DEFAULT 0.990;`,
             sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold24k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.985;`,
           )
           .catch(console.error);
@@ -435,7 +438,8 @@ apiRouter.post("/settings", async (req, res) => {
             .catch(() => {});
           await db
             .execute(
-              sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold24k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.985;`,
+              sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold24k_exc_mult DOUBLE PRECISION NOT NULL DEFAULT 0.990;`,
+            sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold24k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.985;`,
             )
             .catch(() => {});
           await db

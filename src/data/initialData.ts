@@ -20,6 +20,7 @@ import {
 
 export const INITIAL_RATES: JewelleryRates = {
   gold24k: 7245,
+  gold24kExchange: 7195,
   gold24kPurchase: 7045,
   gold22k: 6645,
   gold22kExchange: 6592,
@@ -352,6 +353,7 @@ export const INITIAL_HISTORY: RateHistoryEntry[] = [
   },
   {
     date: 'Jun 09',
-    rates: { gold24k: 7245, gold24kPurchase: 7045, gold22k: 6645, gold22kPurchase: 6445, gold20k: 6040, gold20kPurchase: 5840, gold18k: 5435, gold18kPurchase: 5235, silver: 92.5, silverPurchase: 90.5, platinum: 3450, platinumPurchase: 3250 }
+    rates: { gold24k: 7245,
+  gold24kExchange: 7195, gold24kPurchase: 7045, gold22k: 6645, gold22kPurchase: 6445, gold20k: 6040, gold20kPurchase: 5840, gold18k: 5435, gold18kPurchase: 5235, silver: 92.5, silverPurchase: 90.5, platinum: 3450, platinumPurchase: 3250 }
   }
 ];

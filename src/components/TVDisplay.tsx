@@ -318,6 +318,7 @@ export default function TVDisplay({
       rating: "99.9% Purity",
       label: "24K Gold",
       value: rates.gold24k,
+      exchangeValue: rates.gold24kExchange || (rates.gold24k ? rates.gold24k - 50 : 0),
       purchaseValue: rates.gold24kPurchase,
       trend: trends.gold24k,
       unit: "/ 10 gm",

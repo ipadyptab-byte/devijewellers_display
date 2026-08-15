@@ -127,9 +127,13 @@ export default function App() {
           if (contentType && contentType.indexOf("application/json") !== -1) {
             const json = await res.json();
             if (json.data) {
-              setter(
-                json.data.payload !== undefined ? json.data.payload : json.data,
-              );
+              
+              let payload = json.data.payload !== undefined ? json.data.payload : json.data;
+              if (key === 'rates') {
+                if (!payload.gold24kExchange && payload.gold24k) payload.gold24kExchange = payload.gold24k - 50;
+              }
+              setter(payload);
+
               return;
             }
           }
@@ -259,6 +263,7 @@ export default function App() {
         const received = socketData.data;
         const newRates: JewelleryRates = {
           gold24k: received.gold24kSale,
+          gold24kExchange: received.gold24kExchange || (received.gold24kSale - 50),
           gold24kPurchase: received.gold24kPurchase,
           gold22k: received.gold22kSale,
           gold22kExchange: received.gold22kExchange,
@@ -310,6 +315,7 @@ export default function App() {
         if (received && received.gold24kSale) {
           const newRates: JewelleryRates = {
             gold24k: received.gold24kSale,
+            gold24kExchange: received.gold24kExchange || (received.gold24kSale - 50),
             gold24kPurchase: received.gold24kPurchase,
             gold22k: received.gold22kSale,
             gold22kExchange: received.gold22kExchange,
@@ -357,6 +363,7 @@ export default function App() {
           if (received && received.gold24kSale) {
             const newRates: JewelleryRates = {
               gold24k: received.gold24kSale,
+              gold24kExchange: received.gold24kExchange || (received.gold24kSale - 50),
               gold24kPurchase: received.gold24kPurchase,
               gold22k: received.gold22kSale,
               gold22kExchange: received.gold22kExchange,

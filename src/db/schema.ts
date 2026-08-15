@@ -11,6 +11,7 @@ export const users = pgTable('users', {
 export const rates = pgTable('rates', {
   id: serial('id').primaryKey(),
   gold24kSale: integer('gold_24k_sale').notNull(),
+  gold24kExchange: integer('gold_24k_exchange').notNull().default(0),
   gold24kPurchase: integer('gold_24k_purchase').notNull(),
   gold22kSale: integer('gold_22k_sale').notNull(),
   gold22kExchange: integer('gold_22k_exchange').notNull().default(0),
@@ -29,6 +30,7 @@ export const rateHistoryLogs = pgTable('rate_history_logs', {
   id: serial('id').primaryKey(),
   sourceApiResponse: jsonb('source_api_response'),
   gold24kSale: integer('gold_24k_sale').notNull(),
+  gold24kExchange: integer('gold_24k_exchange').notNull().default(0),
   gold24kPurchase: integer('gold_24k_purchase').notNull(),
   gold22kSale: integer('gold_22k_sale').notNull(),
   gold22kExchange: integer('gold_22k_exchange').notNull().default(0),
@@ -56,6 +58,7 @@ export const calculationSettings = pgTable('calculation_settings', {
   syncIntervalMinutes: integer('sync_interval_minutes').notNull().default(5),
   silverPurchaseOffset: integer('silver_purchase_offset').notNull().default(5000),
   platinumPurchaseOffset: integer('platinum_purchase_offset').notNull().default(4000),
+  gold24kExcMult: doublePrecision('gold24k_exc_mult').notNull().default(0.990),
   gold24kPurMult: doublePrecision('gold24k_pur_mult').notNull().default(0.985),
   gold22kSaleMult: doublePrecision('gold22k_sale_mult').notNull().default(0.920),
   gold22kExcMult: doublePrecision('gold22k_exc_mult').notNull().default(0.910),

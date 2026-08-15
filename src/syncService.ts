@@ -75,6 +75,7 @@ export const syncRates = async () => {
 
     if (!raw24k || isNaN(raw24k)) throw new Error("Invalid 24K gold rate from API");
 
+    const m24kExc = settings.gold24kExcMult ?? 0.990;
     const m24kPur = settings.gold24kPurMult ?? 0.985;
     const m22kSale = settings.gold22kSaleMult ?? 0.920;
     const m22kExc = settings.gold22kExcMult ?? 0.910;
@@ -84,6 +85,7 @@ export const syncRates = async () => {
     const m18kPur = settings.gold18kPurMult ?? 0.800;
 
     const gold24kSale = Math.round(raw24k);
+    const gold24kExchange = Math.round(gold24kSale * m24kExc);
     const gold24kPurchase = Math.round(gold24kSale * m24kPur);
     const gold22kSale = Math.round(gold24kSale * m22kSale);
     const gold22kExchange = Math.round(gold24kSale * m22kExc);
@@ -100,6 +102,7 @@ export const syncRates = async () => {
 
     const rateData = {
       gold24kSale,
+      gold24kExchange,
       gold24kPurchase,
       gold22kSale,
       gold22kExchange,
@@ -128,6 +131,7 @@ export const syncRates = async () => {
           const lastRate = lastRateResult[0];
           if (
             lastRate.gold24kSale === rateData.gold24kSale &&
+            lastRate.gold24kExchange === rateData.gold24kExchange &&
             lastRate.gold24kPurchase === rateData.gold24kPurchase &&
             lastRate.gold22kSale === rateData.gold22kSale &&
             lastRate.gold22kExchange === rateData.gold22kExchange &&
