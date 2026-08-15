@@ -119,20 +119,21 @@ apiRouter.post("/rates/manual_push", async (req, res) => {
     const received = req.body;
     
     // Map frontend JewelleryRates to DB schema
+    const roundTo10 = (val) => Math.round(val / 10) * 10;
     const newDbRow = {
-      gold24kSale: received.gold24k,
-      gold24kExchange: received.gold24kExchange || (received.gold24k - 50),
-      gold24kPurchase: received.gold24kPurchase || (received.gold24k - 200),
-      gold22kSale: received.gold22k,
-      gold22kExchange: received.gold22kExchange || (received.gold22k - 50),
-      gold22kPurchase: received.gold22kPurchase || (received.gold22k - 200),
-      gold18kSale: received.gold18k,
-      gold18kExchange: received.gold18kExchange || (received.gold18k - 50),
-      gold18kPurchase: received.gold18kPurchase || (received.gold18k - 200),
-      silverSale: received.silver,
-      silverPurchase: received.silverPurchase || (received.silver - 2000),
-      platinumSale: received.platinum,
-      platinumPurchase: received.platinumPurchase || (received.platinum - 4000),
+      gold24kSale: roundTo10(received.gold24k),
+      gold24kExchange: roundTo10(received.gold24kExchange || (received.gold24k - 50)),
+      gold24kPurchase: roundTo10(received.gold24kPurchase || (received.gold24k - 200)),
+      gold22kSale: roundTo10(received.gold22k),
+      gold22kExchange: roundTo10(received.gold22kExchange || (received.gold22k - 50)),
+      gold22kPurchase: roundTo10(received.gold22kPurchase || (received.gold22k - 200)),
+      gold18kSale: roundTo10(received.gold18k),
+      gold18kExchange: roundTo10(received.gold18kExchange || (received.gold18k - 50)),
+      gold18kPurchase: roundTo10(received.gold18kPurchase || (received.gold18k - 200)),
+      silverSale: roundTo10(received.silver),
+      silverPurchase: roundTo10(received.silverPurchase || (received.silver - 2000)),
+      platinumSale: roundTo10(received.platinum),
+      platinumPurchase: roundTo10(received.platinumPurchase || (received.platinum - 4000)),
     };
 
     const inserted = await db.insert(rates).values(newDbRow).returning();

@@ -93,7 +93,31 @@ export default function App() {
   }, [activeTab, isStandaloneTvDisplay]);
 
   // Core persistent states
-  const [rates, setRates] = useState<JewelleryRates>(INITIAL_RATES);
+  
+const enforceRounding = (r: any): any => {
+  if (!r) return r;
+  const rnd = (val: any) => typeof val === 'number' ? Math.round(val / 10) * 10 : val;
+  return {
+    ...r,
+    gold24k: rnd(r.gold24k),
+    gold24kExchange: rnd(r.gold24kExchange || (r.gold24k ? r.gold24k - 50 : 0)),
+    gold24kPurchase: rnd(r.gold24kPurchase),
+    gold22k: rnd(r.gold22k),
+    gold22kExchange: rnd(r.gold22kExchange),
+    gold22kPurchase: rnd(r.gold22kPurchase),
+    gold20k: rnd(r.gold20k),
+    gold20kPurchase: rnd(r.gold20kPurchase),
+    gold18k: rnd(r.gold18k),
+    gold18kExchange: rnd(r.gold18kExchange),
+    gold18kPurchase: rnd(r.gold18kPurchase),
+    silver: rnd(r.silver),
+    silverPurchase: rnd(r.silverPurchase),
+    platinum: rnd(r.platinum),
+    platinumPurchase: rnd(r.platinumPurchase),
+  };
+};
+
+  const [rates, setRates] = useState<JewelleryRates>(enforceRounding(INITIAL_RATES));
   const [trends, setTrends] = useState<RateTrends>(INITIAL_TRENDS);
   const [displaySetting, setDisplaySetting] = useState<DisplaySetting>(
     INITIAL_DISPLAY_SETTING,
@@ -131,6 +155,7 @@ export default function App() {
               let payload = json.data.payload !== undefined ? json.data.payload : json.data;
               if (key === 'rates') {
                 if (!payload.gold24kExchange && payload.gold24k) payload.gold24kExchange = payload.gold24k - 50;
+                payload = enforceRounding(payload);
               }
               setter(payload);
 
@@ -142,7 +167,7 @@ export default function App() {
 
       try {
         const item = localStorage.getItem(`asm_${key}`);
-        if (item) setter(JSON.parse(item));
+        if (item) { let p = JSON.parse(item); if (key === 'rates') p = enforceRounding(p); setter(p); }
         else setter(backup);
       } catch (e) {
         setter(backup);
@@ -155,7 +180,7 @@ export default function App() {
           const parsed = JSON.parse(e.newValue);
           switch (e.key) {
             case "asm_rates":
-              setRates(parsed);
+              setRates(enforceRounding(parsed));
               break;
             case "asm_displaySetting":
               setDisplaySetting(parsed);
@@ -290,7 +315,7 @@ export default function App() {
         setRates((prev: JewelleryRates) => {
           if (JSON.stringify(prev) !== JSON.stringify(newRates)) {
             saveToStorage("rates", newRates);
-            return newRates;
+            return enforceRounding(newRates);
           }
           return prev;
         });
@@ -330,7 +355,7 @@ export default function App() {
             platinum: received.platinumSale,
             platinumPurchase: received.platinumPurchase,
           };
-          setRates(newRates);
+          setRates(enforceRounding(newRates));
         }
       })
       .catch((err) => {
@@ -380,7 +405,7 @@ export default function App() {
             };
             setRates((prev: JewelleryRates) => {
               if (JSON.stringify(prev) !== JSON.stringify(newRates)) {
-                return newRates;
+                return enforceRounding(newRates);
               }
               return prev;
             });
@@ -432,7 +457,7 @@ export default function App() {
 
   // State update proxies to keep storage aligned
   const handleUpdateRates = (newRates: JewelleryRates) => {
-    setRates(newRates);
+    setRates(enforceRounding(newRates));
     saveToStorage("rates", newRates);
     
     // Also push directly to PostgreSQL backend
@@ -538,7 +563,7 @@ export default function App() {
       const parsedData = JSON.parse(e.newValue);
       switch (e.key) {
         case "asm_rates":
-          setRates(parsedData);
+          setRates(enforceRounding(parsedData));
           break;
         case "asm_trends":
           setTrends(parsedData);

@@ -363,6 +363,21 @@ export default function RateSync({
               {/* Gold Multipliers */}
               <div>
                 <label className="block text-[11px] font-mono text-[#D4AF37] uppercase tracking-widest mb-1.5 flex justify-between items-center">
+                  <span>24K Exc. Multiplier</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-zinc-500 font-mono text-sm">×</span>
+                  <input 
+                    type="number" 
+                    step="0.001"
+                    value={calcSettings.gold24kExcMult}
+                    onChange={(e)=>setCalcSettings({...calcSettings, gold24kExcMult: parseFloat(e.target.value) || 0})}
+                    className="w-full bg-[#0B0B0D] border border-zinc-700 focus:border-[#D4AF37] rounded p-2.5 pl-7 font-mono text-white text-sm"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[11px] font-mono text-[#D4AF37] uppercase tracking-widest mb-1.5 flex justify-between items-center">
                   <span>24K Pur. Multiplier</span>
                 </label>
                 <div className="relative">
@@ -507,53 +522,53 @@ export default function RateSync({
             {/* ROW 1 */}
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-[#D4AF37]/50 transition-colors">
               <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest">24K Sale</span>
-              <span className="font-serif font-black text-lg text-[#D4AF37]">{formatPrice(baseGold24k)}</span>
+              <span className="font-serif font-black text-lg text-[#D4AF37]">{formatPrice(Math.round(baseGold24k / 10) * 10)}</span>
             </div>
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors">
               <span className="font-mono text-xs text-zinc-500 uppercase tracking-widest">24K Exchange</span>
-              <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(Math.round(baseGold24k * calcSettings.gold24kExcMult) || 0)}</span>
+              <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(Math.round((baseGold24k * calcSettings.gold24kExcMult) / 10) * 10 || 0)}</span>
             </div>
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors">
               <span className="font-mono text-xs text-zinc-500 uppercase tracking-widest">24K Purchase</span>
-              <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(Math.round(baseGold24k * calcSettings.gold24kPurMult) || 0)}</span>
+              <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(Math.round((baseGold24k * calcSettings.gold24kPurMult) / 10) * 10 || 0)}</span>
             </div>
 
             {/* ROW 2 */}
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-[#D4AF37]/50 transition-colors">
               <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest">22K Sale</span>
-              <span className="font-serif font-black text-lg text-[#D4AF37]">{formatPrice(Math.round(baseGold24k * calcSettings.gold22kSaleMult))}</span>
+              <span className="font-serif font-black text-lg text-[#D4AF37]">{formatPrice(Math.round((baseGold24k * calcSettings.gold22kSaleMult) / 10) * 10)}</span>
             </div>
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors">
               <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest">22K Exchange</span>
-              <span className="font-serif font-black text-lg text-white">{formatPrice(Math.round(baseGold24k * calcSettings.gold22kExcMult))}</span>
+              <span className="font-serif font-black text-lg text-white">{formatPrice(Math.round((baseGold24k * calcSettings.gold22kExcMult) / 10) * 10)}</span>
             </div>
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors sm:col-span-2">
               <span className="font-mono text-xs text-zinc-500 uppercase tracking-widest">22K Purchase</span>
-              <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(Math.round(baseGold24k * calcSettings.gold22kPurMult) || 0)}</span>
+              <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(Math.round((baseGold24k * calcSettings.gold22kPurMult) / 10) * 10 || 0)}</span>
             </div>
 
             {/* ROW 3 */}
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-[#D4AF37]/50 transition-colors">
               <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest">18K Sale</span>
-              <span className="font-serif font-black text-lg text-[#D4AF37]">{formatPrice(Math.round(baseGold24k * calcSettings.gold18kSaleMult))}</span>
+              <span className="font-serif font-black text-lg text-[#D4AF37]">{formatPrice(Math.round((baseGold24k * calcSettings.gold18kSaleMult) / 10) * 10)}</span>
             </div>
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors">
               <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest">18K Exchange</span>
-              <span className="font-serif font-black text-lg text-white">{formatPrice(Math.round(baseGold24k * calcSettings.gold18kExcMult))}</span>
+              <span className="font-serif font-black text-lg text-white">{formatPrice(Math.round((baseGold24k * calcSettings.gold18kExcMult) / 10) * 10)}</span>
             </div>
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors sm:col-span-2">
               <span className="font-mono text-xs text-zinc-500 uppercase tracking-widest">18K Purchase</span>
-              <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(Math.round(baseGold24k * calcSettings.gold18kPurMult) || 0)}</span>
+              <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(Math.round((baseGold24k * calcSettings.gold18kPurMult) / 10) * 10 || 0)}</span>
             </div>
 
             {/* ROW 4 */}
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-400 transition-colors">
               <span className="font-mono text-[11px] text-zinc-400 uppercase tracking-widest">Silver Sale</span>
-              <span className="font-serif font-black text-lg text-zinc-200">{formatPrice(baseSilver, true)}</span>
+              <span className="font-serif font-black text-lg text-zinc-200">{formatPrice(Math.round(baseSilver / 10) * 10, true)}</span>
             </div>
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors">
               <span className="font-mono text-[11px] text-zinc-500 uppercase tracking-widest">Silver Purchase</span>
-              <span className="font-serif font-bold text-base text-zinc-400">{formatPrice(baseSilver - calcSettings.silverPurchaseOffset || 0, true)}</span>
+              <span className="font-serif font-bold text-base text-zinc-400">{formatPrice(Math.round((baseSilver - calcSettings.silverPurchaseOffset) / 10) * 10 || 0, true)}</span>
             </div>
 
             {/* ROW 5 */}
@@ -563,7 +578,7 @@ export default function RateSync({
             </div>
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors">
               <span className="font-mono text-[11px] text-zinc-500 uppercase tracking-widest">Plat. Purchase</span>
-              <span className="font-serif font-bold text-base text-zinc-400">{formatPrice(basePlatinum - calcSettings.platinumPurchaseOffset || 0)}</span>
+              <span className="font-serif font-bold text-base text-zinc-400">{formatPrice(Math.round((basePlatinum - calcSettings.platinumPurchaseOffset) / 10) * 10 || 0)}</span>
             </div>
           </div>
         </div>

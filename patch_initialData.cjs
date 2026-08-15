@@ -1,0 +1,18 @@
+const fs = require('fs');
+let code = fs.readFileSync('src/data/initialData.ts', 'utf-8');
+code = code.replace(/gold24k: 7245/, 'gold24k: 7250');
+code = code.replace(/gold24kExchange: 7195/, 'gold24kExchange: 7200');
+code = code.replace(/gold24kPurchase: 7045/, 'gold24kPurchase: 7050');
+code = code.replace(/gold22k: 6645/, 'gold22k: 6650');
+code = code.replace(/gold22kExchange: 6592/, 'gold22kExchange: 6590');
+code = code.replace(/gold22kPurchase: 6445/, 'gold22kPurchase: 6450');
+code = code.replace(/gold20k: 6040/, 'gold20k: 6040');
+code = code.replace(/gold20kPurchase: 5840/, 'gold20kPurchase: 5840');
+code = code.replace(/gold18k: 5435/, 'gold18k: 5440');
+code = code.replace(/gold18kExchange: 5360/, 'gold18kExchange: 5360');
+code = code.replace(/gold18kPurchase: 5235/, 'gold18kPurchase: 5240');
+code = code.replace(/silver: 92500/, 'silver: 92500');
+code = code.replace(/silverPurchase: 90500/, 'silverPurchase: 90500');
+code = code.replace(/platinum: 3450/, 'platinum: 3450');
+code = code.replace(/platinumPurchase: 3250/, 'platinumPurchase: 3250');
+fs.writeFileSync('src/data/initialData.ts', code);
