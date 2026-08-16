@@ -805,7 +805,7 @@ export default function TVDisplay({
                                 fontSize: labelFontSize ? `clamp(4px, ${labelFontSize}px, min(20cqh, 15cqw))` : "clamp(12px, min(17cqh, 6cqw), 80px)",
                               }}
                             >
-                              {item.label}
+                              {item.label} <span className="text-[0.45em] normal-case font-medium tracking-normal opacity-90">Rate per 10 gms</span>
                             </h3>
                             {/* HUGE Rate Typography */}
                             <div className="flex items-stretch w-full min-h-0 shrink mt-auto mb-auto">
@@ -963,7 +963,7 @@ export default function TVDisplay({
                                 fontSize: (silverLabelFontSize || labelFontSize) ? `clamp(4px, ${silverLabelFontSize || labelFontSize}px, min(20cqh, 15cqw))` : "clamp(12px, min(17cqh, 6cqw), 80px)",
                               }}
                             >
-                              {item.label}
+                              {item.label} <span className="text-[0.45em] normal-case font-medium tracking-normal opacity-90">Rate per kg</span>
                             </h3>
                             {/* HUGE Rate Typography */}
                             <div className="flex items-stretch w-full min-h-0 shrink mt-auto mb-auto">
@@ -1095,9 +1095,6 @@ export default function TVDisplay({
                 {/* Slideshow Luxury Bottom Titles and Meta */}
                 <div className="absolute bottom-8 left-8 right-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4 z-10 pointer-events-none">
                   <div className="max-w-2xl">
-                    <h2 className="text-2xl md:text-3xl font-poppins font-black tracking-normal text-white uppercase leading-tight">
-                      {currentItem.title}
-                    </h2>
                     <p className="text-[11px] text-[#D4AF37] font-poppins tracking-widest leading-relaxed mt-1 uppercase font-bold">
                       ✦ Certified Fine Jewelry Exhibition & Swarna Collections ✦
                     </p>
