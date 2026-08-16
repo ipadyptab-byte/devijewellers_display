@@ -82,10 +82,14 @@ export default function AdminDashboard({
   const [purchaseRateFontSize, setPurchaseRateFontSize] = useState<number>(displaySetting.purchaseRateFontSize || 28);
   const [goldFontSize, setGoldFontSize] = useState<number>(displaySetting.goldFontSize || displaySetting.rateFontSize || 28);
   const [silverFontSize, setSilverFontSize] = useState<number>(displaySetting.silverFontSize || displaySetting.rateFontSize || 28);
+  const [silverPurchaseRateFontSize, setSilverPurchaseRateFontSize] = useState<number>(displaySetting.silverPurchaseRateFontSize || displaySetting.purchaseRateFontSize || 28);
   const [labelFontSize, setLabelFontSize] = useState<number>(displaySetting.labelFontSize || 12);
+  const [silverLabelFontSize, setSilverLabelFontSize] = useState<number>(displaySetting.silverLabelFontSize || displaySetting.labelFontSize || 12);
   const [subLabelFontSize, setSubLabelFontSize] = useState<number>(displaySetting.subLabelFontSize || 10);
   const [saleTitleFontSize, setSaleTitleFontSize] = useState<number>(displaySetting.saleTitleFontSize || displaySetting.subLabelFontSize || 10);
+  const [silverSaleTitleFontSize, setSilverSaleTitleFontSize] = useState<number>(displaySetting.silverSaleTitleFontSize || displaySetting.saleTitleFontSize || 10);
   const [purchaseTitleFontSize, setPurchaseTitleFontSize] = useState<number>(displaySetting.purchaseTitleFontSize || displaySetting.subLabelFontSize || 10);
+  const [silverPurchaseTitleFontSize, setSilverPurchaseTitleFontSize] = useState<number>(displaySetting.silverPurchaseTitleFontSize || displaySetting.purchaseTitleFontSize || 10);
   const [mediaLoopEnabled, setMediaLoopEnabled] = useState<boolean>(displaySetting.mediaLoopEnabled !== false);
   const [rotateBackgroundEnabled, setRotateBackgroundEnabled] = useState<boolean>(displaySetting.rotateBackgroundEnabled || false);
   const [visibleRates, setVisibleRates] = useState<string[]>(
@@ -123,10 +127,14 @@ export default function AdminDashboard({
     setPurchaseRateFontSize(displaySetting.purchaseRateFontSize || 28);
     setGoldFontSize(displaySetting.goldFontSize || displaySetting.rateFontSize || 28);
     setSilverFontSize(displaySetting.silverFontSize || displaySetting.rateFontSize || 28);
+    setSilverPurchaseRateFontSize(displaySetting.silverPurchaseRateFontSize || displaySetting.purchaseRateFontSize || 28);
     setLabelFontSize(displaySetting.labelFontSize || 12);
+    setSilverLabelFontSize(displaySetting.silverLabelFontSize || displaySetting.labelFontSize || 12);
     setSubLabelFontSize(displaySetting.subLabelFontSize || 10);
     setSaleTitleFontSize(displaySetting.saleTitleFontSize || displaySetting.subLabelFontSize || 10);
+    setSilverSaleTitleFontSize(displaySetting.silverSaleTitleFontSize || displaySetting.saleTitleFontSize || 10);
     setPurchaseTitleFontSize(displaySetting.purchaseTitleFontSize || displaySetting.subLabelFontSize || 10);
+    setSilverPurchaseTitleFontSize(displaySetting.silverPurchaseTitleFontSize || displaySetting.purchaseTitleFontSize || 10);
     setMediaLoopEnabled(displaySetting.mediaLoopEnabled !== false);
     setRotateBackgroundEnabled(displaySetting.rotateBackgroundEnabled || false);
     setVisibleRates(displaySetting.visibleRates || ['gold24k', 'gold22k', 'gold20k', 'gold18k', 'silver', 'platinum']);
@@ -229,10 +237,14 @@ export default function AdminDashboard({
       purchaseRateFontSize,
       goldFontSize,
       silverFontSize,
+      silverPurchaseRateFontSize,
       labelFontSize,
+      silverLabelFontSize,
       subLabelFontSize,
       saleTitleFontSize,
+      silverSaleTitleFontSize,
       purchaseTitleFontSize,
+      silverPurchaseTitleFontSize,
       customPrimaryBg,
       customSecondaryBg,
       customCardBg,
@@ -761,7 +773,7 @@ export default function AdminDashboard({
               <div className="flex flex-col gap-1.5 p-3.5 bg-[#0B0B0D] rounded border border-zinc-800/70 md:col-span-1">
                 <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
                   <span className="text-zinc-400 font-semibold text-[#D4AF37]/90 flex items-center gap-1">
-                    <Sliders className="w-3 h-3 text-[#D4AF37]" /> Sale Rate Value Size
+                    <Sliders className="w-3 h-3 text-[#D4AF37]" /> Gold Sale Rate Size
                   </span>
                   <span className="text-[#D4AF37] font-bold">{goldFontSize} px</span>
                 </div>
@@ -773,13 +785,12 @@ export default function AdminDashboard({
                   onChange={(e) => {
                     const val = e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value));
                     setGoldFontSize(val);
-                    setSilverFontSize(val);
                   }}
                   className="w-full bg-[#141416] text-white border border-zinc-800/80 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] focus:outline-none rounded px-3 py-1.5 text-sm mt-1.5 font-mono"
                   placeholder="e.g. 28"
                 />
                 <p className="text-[9.5px] text-zinc-500 mt-2 leading-snug">
-                  Size of the SALE price figures (e.g. 7,500).
+                  Size of the Gold SALE price figures.
                 </p>
               </div>
 
@@ -787,7 +798,7 @@ export default function AdminDashboard({
               <div className="flex flex-col gap-1.5 p-3.5 bg-[#0B0B0D] rounded border border-zinc-800/70 md:col-span-1">
                 <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
                   <span className="text-zinc-400 font-semibold text-[#D4AF37]/90 flex items-center gap-1">
-                    <Sliders className="w-3 h-3 text-[#D4AF37]" /> Purchase Rate Value Size
+                    <Sliders className="w-3 h-3 text-[#D4AF37]" /> Gold Purchase Rate Size
                   </span>
                   <span className="text-[#D4AF37] font-bold">{purchaseRateFontSize} px</span>
                 </div>
@@ -804,7 +815,57 @@ export default function AdminDashboard({
                   placeholder="e.g. 28"
                 />
                 <p className="text-[9.5px] text-zinc-500 mt-2 leading-snug">
-                  Size of the PURCHASE price figures (e.g. 7,300).
+                  Size of the Gold PURCHASE price figures.
+                </p>
+              </div>
+
+              {/* Silver Rate Font Size */}
+              <div className="flex flex-col gap-1.5 p-3.5 bg-[#0B0B0D] rounded border border-zinc-800/70 md:col-span-1">
+                <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
+                  <span className="text-zinc-400 font-semibold text-zinc-300 flex items-center gap-1">
+                    <Sliders className="w-3 h-3 text-zinc-400" /> Silver Sale Rate Size
+                  </span>
+                  <span className="text-zinc-300 font-bold">{silverFontSize} px</span>
+                </div>
+                <input
+                  type="number"
+                  min={12}
+                  max={120}
+                  value={silverFontSize === 0 ? '' : silverFontSize}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value));
+                    setSilverFontSize(val);
+                  }}
+                  className="w-full bg-[#141416] text-white border border-zinc-800/80 focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400 focus:outline-none rounded px-3 py-1.5 text-sm mt-1.5 font-mono"
+                  placeholder="e.g. 28"
+                />
+                <p className="text-[9.5px] text-zinc-500 mt-2 leading-snug">
+                  Size of the Silver SALE price figures.
+                </p>
+              </div>
+
+              {/* Silver Purchase Rate Font Size */}
+              <div className="flex flex-col gap-1.5 p-3.5 bg-[#0B0B0D] rounded border border-zinc-800/70 md:col-span-1">
+                <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
+                  <span className="text-zinc-400 font-semibold text-zinc-300 flex items-center gap-1">
+                    <Sliders className="w-3 h-3 text-zinc-400" /> Silver Purchase Rate Size
+                  </span>
+                  <span className="text-zinc-300 font-bold">{silverPurchaseRateFontSize} px</span>
+                </div>
+                <input
+                  type="number"
+                  min={12}
+                  max={120}
+                  value={silverPurchaseRateFontSize === 0 ? '' : silverPurchaseRateFontSize}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value));
+                    setSilverPurchaseRateFontSize(val);
+                  }}
+                  className="w-full bg-[#141416] text-white border border-zinc-800/80 focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400 focus:outline-none rounded px-3 py-1.5 text-sm mt-1.5 font-mono"
+                  placeholder="e.g. 28"
+                />
+                <p className="text-[9.5px] text-zinc-500 mt-2 leading-snug">
+                  Size of the Silver PURCHASE price figures.
                 </p>
               </div>
 
@@ -812,7 +873,7 @@ export default function AdminDashboard({
               <div className="flex flex-col gap-1.5 p-3.5 bg-[#0B0B0D] rounded border border-zinc-800/70 md:col-span-1">
                 <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
                   <span className="text-zinc-400 font-semibold text-[#D4AF37]/90 flex items-center gap-1">
-                    <Sliders className="w-3 h-3 text-[#D4AF37]" /> Rate Label Font Size
+                    <Sliders className="w-3 h-3 text-[#D4AF37]" /> Gold Metal Label Size
                   </span>
                   <span className="text-[#D4AF37] font-bold">{labelFontSize} px</span>
                 </div>
@@ -829,7 +890,32 @@ export default function AdminDashboard({
                   placeholder="e.g. 12"
                 />
                 <p className="text-[9.5px] text-zinc-500 mt-2 leading-snug">
-                  Size of the metal labels (e.g. GOLD 24K).
+                  Size of the Gold labels (e.g. GOLD 24K).
+                </p>
+              </div>
+
+              {/* Silver Label Font Size */}
+              <div className="flex flex-col gap-1.5 p-3.5 bg-[#0B0B0D] rounded border border-zinc-800/70 md:col-span-1">
+                <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
+                  <span className="text-zinc-400 font-semibold text-zinc-300 flex items-center gap-1">
+                    <Sliders className="w-3 h-3 text-zinc-400" /> Silver Metal Label Size
+                  </span>
+                  <span className="text-zinc-300 font-bold">{silverLabelFontSize} px</span>
+                </div>
+                <input
+                  type="number"
+                  min={8}
+                  max={48}
+                  value={silverLabelFontSize === 0 ? '' : silverLabelFontSize}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value));
+                    setSilverLabelFontSize(val);
+                  }}
+                  className="w-full bg-[#141416] text-white border border-zinc-800/80 focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400 focus:outline-none rounded px-3 py-1.5 text-sm mt-1.5 font-mono"
+                  placeholder="e.g. 12"
+                />
+                <p className="text-[9.5px] text-zinc-500 mt-2 leading-snug">
+                  Size of the Silver labels.
                 </p>
               </div>
 
@@ -837,7 +923,7 @@ export default function AdminDashboard({
               <div className="flex flex-col gap-1.5 p-3.5 bg-[#0B0B0D] rounded border border-zinc-800/70 md:col-span-1">
                 <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
                   <span className="text-zinc-400 font-semibold text-[#D4AF37]/90 flex items-center gap-1">
-                    <Sliders className="w-3 h-3 text-[#D4AF37]" /> Sale Title Size
+                    <Sliders className="w-3 h-3 text-[#D4AF37]" /> Gold Sale Title Size
                   </span>
                   <span className="text-[#D4AF37] font-bold">{saleTitleFontSize} px</span>
                 </div>
@@ -854,7 +940,32 @@ export default function AdminDashboard({
                   placeholder="e.g. 10"
                 />
                 <p className="text-[9.5px] text-zinc-500 mt-2 leading-snug">
-                  Size of the SALE RATE text.
+                  Size of the Gold SALE text.
+                </p>
+              </div>
+
+              {/* Silver Sale Title Size */}
+              <div className="flex flex-col gap-1.5 p-3.5 bg-[#0B0B0D] rounded border border-zinc-800/70 md:col-span-1">
+                <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
+                  <span className="text-zinc-400 font-semibold text-zinc-300 flex items-center gap-1">
+                    <Sliders className="w-3 h-3 text-zinc-400" /> Silver Sale Title Size
+                  </span>
+                  <span className="text-zinc-300 font-bold">{silverSaleTitleFontSize} px</span>
+                </div>
+                <input
+                  type="number"
+                  min={5}
+                  max={48}
+                  value={silverSaleTitleFontSize === 0 ? '' : silverSaleTitleFontSize}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value));
+                    setSilverSaleTitleFontSize(val);
+                  }}
+                  className="w-full bg-[#141416] text-white border border-zinc-800/80 focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400 focus:outline-none rounded px-3 py-1.5 text-sm mt-1.5 font-mono"
+                  placeholder="e.g. 10"
+                />
+                <p className="text-[9.5px] text-zinc-500 mt-2 leading-snug">
+                  Size of the Silver SALE text.
                 </p>
               </div>
 
@@ -862,7 +973,7 @@ export default function AdminDashboard({
               <div className="flex flex-col gap-1.5 p-3.5 bg-[#0B0B0D] rounded border border-zinc-800/70 md:col-span-1">
                 <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
                   <span className="text-zinc-400 font-semibold text-[#D4AF37]/90 flex items-center gap-1">
-                    <Sliders className="w-3 h-3 text-[#D4AF37]" /> Purchase Title Size
+                    <Sliders className="w-3 h-3 text-[#D4AF37]" /> Gold Purchase Title Size
                   </span>
                   <span className="text-[#D4AF37] font-bold">{purchaseTitleFontSize} px</span>
                 </div>
@@ -879,7 +990,32 @@ export default function AdminDashboard({
                   placeholder="e.g. 10"
                 />
                 <p className="text-[9.5px] text-zinc-500 mt-2 leading-snug">
-                  Size of the PURCHASE RATE text.
+                  Size of the Gold PURCHASE text.
+                </p>
+              </div>
+
+              {/* Silver Purchase Title Size */}
+              <div className="flex flex-col gap-1.5 p-3.5 bg-[#0B0B0D] rounded border border-zinc-800/70 md:col-span-1">
+                <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
+                  <span className="text-zinc-400 font-semibold text-zinc-300 flex items-center gap-1">
+                    <Sliders className="w-3 h-3 text-zinc-400" /> Silver Purchase Title Size
+                  </span>
+                  <span className="text-zinc-300 font-bold">{silverPurchaseTitleFontSize} px</span>
+                </div>
+                <input
+                  type="number"
+                  min={5}
+                  max={48}
+                  value={silverPurchaseTitleFontSize === 0 ? '' : silverPurchaseTitleFontSize}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value));
+                    setSilverPurchaseTitleFontSize(val);
+                  }}
+                  className="w-full bg-[#141416] text-white border border-zinc-800/80 focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400 focus:outline-none rounded px-3 py-1.5 text-sm mt-1.5 font-mono"
+                  placeholder="e.g. 10"
+                />
+                <p className="text-[9.5px] text-zinc-500 mt-2 leading-snug">
+                  Size of the Silver PURCHASE text.
                 </p>
               </div>
 

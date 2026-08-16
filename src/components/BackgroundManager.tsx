@@ -557,7 +557,7 @@ export default function BackgroundManager({
                 
                 <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-mono mt-1.5">
                   <Calendar className="w-3.5 h-3.5 text-[#D4AF37]" />
-                  <span>{new Date(item.startDate).toLocaleDateString()} - {new Date(item.endDate).toLocaleDateString()}</span>
+                  <span>{item.startDate && item.endDate ? `${new Date(item.startDate).toLocaleDateString()} - ${new Date(item.endDate).toLocaleDateString()}` : 'No Expiry Date'}</span>
                 </div>
 
                 <div className="flex items-center gap-2 text-[10px] text-zinc-400 font-mono mt-2 bg-black/40 px-2.5 py-1.5 rounded border border-zinc-800/50">
@@ -649,7 +649,7 @@ export default function BackgroundManager({
                 {previewItem.title}
               </h3>
               <p className="text-xs text-zinc-400 font-mono mt-1.5 flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-[#D4AF37]" /> Active Schedule Duration: {previewItem.startDate} up to {previewItem.endDate}
+                <Calendar className="w-4 h-4 text-[#D4AF37]" /> Active Schedule Duration: {previewItem.startDate && previewItem.endDate ? `${previewItem.startDate} up to ${previewItem.endDate}` : 'No Expiry Date'}
               </p>
             </div>
           </div>

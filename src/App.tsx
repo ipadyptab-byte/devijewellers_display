@@ -647,15 +647,19 @@ const enforceRounding = (r: any): any => {
               purchaseRateFontSize={displaySetting.purchaseRateFontSize}
               goldFontSize={displaySetting.goldFontSize}
               silverFontSize={displaySetting.silverFontSize}
+              silverPurchaseRateFontSize={displaySetting.silverPurchaseRateFontSize}
               labelFontSize={displaySetting.labelFontSize}
+              silverLabelFontSize={displaySetting.silverLabelFontSize}
               saleTitleFontSize={
                 displaySetting.saleTitleFontSize ||
                 displaySetting.subLabelFontSize
               }
+              silverSaleTitleFontSize={displaySetting.silverSaleTitleFontSize}
               purchaseTitleFontSize={
                 displaySetting.purchaseTitleFontSize ||
                 displaySetting.subLabelFontSize
               }
+              silverPurchaseTitleFontSize={displaySetting.silverPurchaseTitleFontSize}
               visibleRates={displaySetting.visibleRates}
               media={media}
               mediaLoopEnabled={displaySetting.mediaLoopEnabled !== false}
@@ -773,14 +777,18 @@ const enforceRounding = (r: any): any => {
           purchaseRateFontSize={displaySetting.purchaseRateFontSize}
           goldFontSize={displaySetting.goldFontSize}
           silverFontSize={displaySetting.silverFontSize}
+          silverPurchaseRateFontSize={displaySetting.silverPurchaseRateFontSize}
           labelFontSize={displaySetting.labelFontSize}
+          silverLabelFontSize={displaySetting.silverLabelFontSize}
           saleTitleFontSize={
             displaySetting.saleTitleFontSize || displaySetting.subLabelFontSize
           }
+          silverSaleTitleFontSize={displaySetting.silverSaleTitleFontSize}
           purchaseTitleFontSize={
             displaySetting.purchaseTitleFontSize ||
             displaySetting.subLabelFontSize
           }
+          silverPurchaseTitleFontSize={displaySetting.silverPurchaseTitleFontSize}
           visibleRates={displaySetting.visibleRates}
           media={media}
           mediaLoopEnabled={displaySetting.mediaLoopEnabled !== false}
