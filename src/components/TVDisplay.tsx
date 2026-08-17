@@ -802,7 +802,7 @@ export default function TVDisplay({
                             <h3
                               className="font-poppins font-bold uppercase tracking-widest text-[#D4AF37] leading-none gold-gradient whitespace-nowrap shrink-0"
                               style={{
-                                fontSize: labelFontSize ? `${labelFontSize}px` : "clamp(12px, 3vw, 80px)",
+                                fontSize: labelFontSize ? `clamp(4px, ${labelFontSize}px, min(20cqh, 15cqw))` : "clamp(12px, min(17cqh, 6cqw), 80px)",
                               }}
                             >
                               {item.label} <span className="text-[0.45em] normal-case font-medium tracking-normal opacity-90">Rate per 10 gms</span>
@@ -814,7 +814,7 @@ export default function TVDisplay({
                                 <span
                                   className="text-[#FFD700] font-poppins uppercase font-black tracking-[0.1em] border-b border-[#FFD700]/30 pb-0.5 w-full text-center mb-0.5 whitespace-nowrap"
                                   style={{
-                                    fontSize: saleTitleFontSize ? `${saleTitleFontSize}px` : "clamp(8px, 2.5vw, 90px)",
+                                    fontSize: saleTitleFontSize ? `clamp(4px, ${saleTitleFontSize}px, min(10cqh, 15cqw))` : "clamp(8px, min(18cqh, 13cqw), 90px)",
                                   }}
                                 >
                                   SALE
@@ -822,7 +822,7 @@ export default function TVDisplay({
                                 <span
                                   className="font-poppins font-black tracking-tight leading-none whitespace-nowrap gold-gradient whitespace-nowrap"
                                   style={{
-                                    fontSize: (goldFontSize || rateFontSize) ? `${goldFontSize || rateFontSize}px` : "clamp(16px, 5vw, 250px)",
+                                    fontSize: (goldFontSize || rateFontSize) ? `clamp(6px, ${goldFontSize || rateFontSize}px, min(35cqh, 20cqw))` : "clamp(16px, min(45cqh, 22cqw), 250px)",
                                   }}
                                 >
                                   {formatPrice(item.value, false)}
@@ -840,7 +840,7 @@ export default function TVDisplay({
                                       className={`${accentColor} font-poppins uppercase font-black tracking-[0.1em] border-b pb-0.5 w-full text-center mb-0.5 whitespace-nowrap`}
                                       style={{
                                         borderBottomColor: 'currentColor',
-                                        fontSize: saleTitleFontSize ? `${saleTitleFontSize}px` : "clamp(8px, 2.5vw, 90px)",
+                                        fontSize: saleTitleFontSize ? `clamp(4px, ${saleTitleFontSize}px, min(10cqh, 15cqw))` : "clamp(8px, min(18cqh, 13cqw), 90px)",
                                       }}
                                     >
                                       EXCHANGE
@@ -848,7 +848,7 @@ export default function TVDisplay({
                                     <span
                                       className={`font-poppins font-black tracking-tight leading-none whitespace-nowrap ${accentColor} whitespace-nowrap`}
                                       style={{
-                                        fontSize: (goldFontSize || rateFontSize) ? `${goldFontSize || rateFontSize}px` : "clamp(16px, 5vw, 250px)",
+                                        fontSize: (goldFontSize || rateFontSize) ? `clamp(6px, ${goldFontSize || rateFontSize}px, min(35cqh, 20cqw))` : "clamp(16px, min(45cqh, 22cqw), 250px)",
                                       }}
                                     >
                                       {formatPrice(item.exchangeValue, false)}
@@ -865,7 +865,7 @@ export default function TVDisplay({
                                 <span
                                   className="text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] border-b border-zinc-400/30 pb-0.5 w-full text-center mb-0.5 whitespace-nowrap"
                                   style={{
-                                    fontSize: purchaseTitleFontSize ? `${purchaseTitleFontSize}px` : "clamp(8px, 2.5vw, 90px)",
+                                    fontSize: purchaseTitleFontSize ? `clamp(4px, ${purchaseTitleFontSize}px, min(10cqh, 15cqw))` : "clamp(8px, min(18cqh, 13cqw), 90px)",
                                   }}
                                 >
                                   PURCHASE
@@ -873,7 +873,7 @@ export default function TVDisplay({
                                 <span
                                   className="font-poppins font-black tracking-tight leading-none whitespace-nowrap text-zinc-300"
                                   style={{
-                                    fontSize: purchaseRateFontSize ? `${purchaseRateFontSize}px` : "clamp(16px, 5vw, 250px)",
+                                    fontSize: purchaseRateFontSize ? `clamp(6px, ${purchaseRateFontSize}px, min(35cqh, 20cqw))` : "clamp(16px, min(45cqh, 22cqw), 250px)",
                                   }}
                                 >
                                   {formatPrice(
@@ -960,7 +960,7 @@ export default function TVDisplay({
                             <h3
                               className={`font-poppins font-bold uppercase tracking-widest leading-none silver-gradient whitespace-nowrap shrink-0`}
                               style={{
-                                fontSize: (silverLabelFontSize || labelFontSize) ? `${silverLabelFontSize || labelFontSize}px` : "clamp(12px, 3vw, 80px)",
+                                fontSize: (silverLabelFontSize || labelFontSize) ? `clamp(4px, ${silverLabelFontSize || labelFontSize}px, min(20cqh, 15cqw))` : "clamp(12px, min(17cqh, 6cqw), 80px)",
                               }}
                             >
                               {item.label} <span className="text-[0.45em] normal-case font-medium tracking-normal opacity-90">Rate per kg</span>
@@ -972,7 +972,7 @@ export default function TVDisplay({
                                 <span
                                   className="text-[#E5E4E2] font-poppins uppercase font-black tracking-[0.1em] border-b border-[#E5E4E2]/30 pb-0.5 w-full text-center mb-0.5 whitespace-nowrap"
                                   style={{
-                                    fontSize: (silverSaleTitleFontSize || saleTitleFontSize) ? `${silverSaleTitleFontSize || saleTitleFontSize}px` : "clamp(8px, 2.5vw, 90px)",
+                                    fontSize: (silverSaleTitleFontSize || saleTitleFontSize) ? `clamp(4px, ${silverSaleTitleFontSize || saleTitleFontSize}px, min(10cqh, 15cqw))` : "clamp(8px, min(18cqh, 13cqw), 90px)",
                                   }}
                                 >
                                   SALE
@@ -980,7 +980,7 @@ export default function TVDisplay({
                                 <span
                                   className={`font-poppins font-black tracking-tight leading-none whitespace-nowrap ${item.key === "silver" ? "text-[#ededed]" : "text-[#E5E4E2]"}`}
                                   style={{
-                                    fontSize: (silverFontSize || rateFontSize) ? `${silverFontSize || rateFontSize}px` : "clamp(16px, 5vw, 250px)",
+                                    fontSize: (silverFontSize || rateFontSize) ? `clamp(6px, ${silverFontSize || rateFontSize}px, min(35cqh, 20cqw))` : "clamp(16px, min(45cqh, 22cqw), 250px)",
                                   }}
                                 >
                                   {formatPrice(item.value, isSilver)}
@@ -995,7 +995,7 @@ export default function TVDisplay({
                                 <span
                                   className="text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] border-b border-zinc-400/30 pb-0.5 w-full text-center mb-0.5 whitespace-nowrap"
                                   style={{
-                                    fontSize: (silverPurchaseTitleFontSize || purchaseTitleFontSize) ? `${silverPurchaseTitleFontSize || purchaseTitleFontSize}px` : "clamp(8px, 2.5vw, 90px)",
+                                    fontSize: (silverPurchaseTitleFontSize || purchaseTitleFontSize) ? `clamp(4px, ${silverPurchaseTitleFontSize || purchaseTitleFontSize}px, min(10cqh, 15cqw))` : "clamp(8px, min(18cqh, 13cqw), 90px)",
                                   }}
                                 >
                                   PURCHASE
@@ -1003,7 +1003,7 @@ export default function TVDisplay({
                                 <span
                                   className={`font-poppins font-black tracking-tight leading-none whitespace-nowrap ${item.key === "silver" ? "text-[#ededed]" : "text-zinc-400"}`}
                                   style={{
-                                    fontSize: (silverPurchaseRateFontSize || purchaseRateFontSize) ? `${silverPurchaseRateFontSize || purchaseRateFontSize}px` : "clamp(16px, 5vw, 250px)",
+                                    fontSize: (silverPurchaseRateFontSize || purchaseRateFontSize) ? `clamp(6px, ${silverPurchaseRateFontSize || purchaseRateFontSize}px, min(35cqh, 20cqw))` : "clamp(16px, min(45cqh, 22cqw), 250px)",
                                   }}
                                 >
                                   {formatPrice(
