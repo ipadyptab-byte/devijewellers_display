@@ -233,6 +233,7 @@ export default function AdminDashboard({
       announcementText,
       showAnnouncement,
       refreshInterval,
+      pageReloadIntervalMinutes,
       ratesDisplayDuration,
       slideshowDisplayDuration,
       rateFontSize,
