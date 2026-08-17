@@ -756,7 +756,7 @@ const enforceRounding = (r: any): any => {
 
   if (isStandaloneTvDisplay) {
     return (
-      <div className="w-full h-[100dvh] bg-black overflow-hidden relative font-sans antialiased flex flex-col">
+      <div className="w-full h-[100vh] bg-black overflow-hidden relative font-sans antialiased flex flex-col">
         <TVDisplay
           rates={rates}
           trends={trends}
@@ -805,7 +805,7 @@ const enforceRounding = (r: any): any => {
   return (
     <div
       id="app-workspace-container"
-      className="h-[100dvh] w-full overflow-hidden bg-[#0B0B0D] text-[#F8F5EE] flex font-sans select-none antialiased"
+      className="h-[100vh] w-full overflow-hidden bg-[#0B0B0D] text-[#F8F5EE] flex font-sans select-none antialiased"
     >
       {/* SIDEBAR NAVIGATION WORKSPACE */}
       {/* Desktop Sidebar */}
