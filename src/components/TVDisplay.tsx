@@ -800,13 +800,16 @@ export default function TVDisplay({
                             {/* Live indicator removed as requested */}
 
                             <h3
-                              className="font-poppins font-bold uppercase tracking-widest text-[#D4AF37] leading-none gold-gradient whitespace-nowrap shrink-0"
+  className="font-poppins font-bold uppercase tracking-widest text-[#D4AF37] leading-none  whitespace-nowrap shrink-0"
+
                               style={{
                                 fontSize: labelFontSize ? `clamp(4px, calc(${labelFontSize} * min(1vh, 1vw) / 10.8), min(20vh, 15vw))` : "clamp(12px, min(17vh, 6vw), 80px)",
                               }}
-                            >
-                              {item.label} <span className="text-[0.45em] normal-case font-medium tracking-normal opacity-90">Rate per 10 gms</span>
-                            </h3>
+                            
+>
+  <span className="gold-gradient">{item.label}</span>
+  <span className="text-[0.45em] normal-case font-medium tracking-normal opacity-90 gold-gradient"> Rate per 10 gms</span>
+</h3>
                             {/* HUGE Rate Typography */}
                             <div className="flex items-stretch w-full min-h-0 shrink mt-auto mb-auto">
                               {/* Left: SALE */}
@@ -958,12 +961,12 @@ export default function TVDisplay({
                             {/* Live indicator removed as requested */}
 
                             <h3
-                              className={`font-poppins font-bold uppercase tracking-widest leading-none silver-gradient whitespace-nowrap shrink-0`}
+                              className={`font-poppins font-bold uppercase tracking-widest leading-none whitespace-nowrap shrink-0`}
                               style={{
                                 fontSize: (silverLabelFontSize || labelFontSize) ? `clamp(4px, calc(${silverLabelFontSize || labelFontSize} * min(1vh, 1vw) / 10.8), min(20vh, 15vw))` : "clamp(12px, min(17vh, 6vw), 80px)",
                               }}
                             >
-                              {item.label} <span className="text-[0.45em] normal-case font-medium tracking-normal opacity-90">Rate per kg</span>
+                              <span className="silver-gradient">{item.label}</span> <span className="text-[0.45em] normal-case font-medium tracking-normal opacity-90 silver-gradient">Rate per kg</span>
                             </h3>
                             {/* HUGE Rate Typography */}
                             <div className="flex items-stretch w-full min-h-0 shrink mt-auto mb-auto">
