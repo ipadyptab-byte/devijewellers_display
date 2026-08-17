@@ -1,44 +1,51 @@
 const fs = require('fs');
-let code = fs.readFileSync('src/components/MediaManager.tsx', 'utf-8');
+let code = fs.readFileSync('src/components/MediaManager.tsx', 'utf8');
 
-code = code.replace(
-  /<div className="flex flex-col gap-1">\s*<label className="text-\[10px\] font-mono uppercase tracking-widest text-zinc-400">Broadcast Start Date<\/label>\s*<input \s*type="date" \s*value={newStart}\s*onChange={\(e\) => setNewStart\(e\.target\.value\)}\s*className="bg-\[#0B0B0D\] border border-zinc-800 text-xs p-2 rounded focus:outline-none"\s*\/>\s*<\/div>\s*<div className="flex flex-col gap-1">\s*<label className="text-\[10px\] font-mono uppercase tracking-widest text-zinc-400">Expirational End Date<\/label>\s*<input \s*type="date" \s*value={newEnd}\s*onChange={\(e\) => setNewEnd\(e\.target\.value\)}\s*className="bg-\[#0B0B0D\] border border-zinc-800 text-xs p-2 rounded focus:outline-none"\s*\/>\s*<\/div>/,
-  `<div className="md:col-span-2 flex flex-col gap-3 bg-black/20 p-3 rounded-lg border border-zinc-800/50 mt-1">
-              <label className="flex items-center gap-3 cursor-pointer w-fit group">
-                <input 
-                  type="checkbox" 
-                  checked={enableDates}
-                  onChange={(e) => setEnableDates(e.target.checked)}
-                  className="w-4 h-4 rounded appearance-none border border-zinc-600 checked:bg-[#D4AF37] checked:border-[#D4AF37] flex-shrink-0 relative after:content-[''] after:absolute after:hidden checked:after:block after:left-[4px] after:top-[1px] after:w-1.5 after:h-2.5 after:border-r-2 after:border-b-2 after:border-black after:rotate-45"
-                />
-                <span className="text-xs font-serif font-bold text-[#D4AF37] tracking-wider group-hover:text-[#F4D03F] transition-colors mt-0.5">
-                  Enable Broadcast Dates
-                </span>
-              </label>
-
-              {enableDates && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-zinc-800/60">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Broadcast Start Date</label>
-                    <input 
-                      type="date" 
-                      value={newStart}
-                      onChange={(e) => setNewStart(e.target.value)}
-                      className="bg-[#0B0B0D] border border-zinc-800 text-xs p-2 rounded focus:outline-none"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Expirational End Date</label>
-                    <input 
-                      type="date" 
-                      value={newEnd}
-                      onChange={(e) => setNewEnd(e.target.value)}
-                      className="bg-[#0B0B0D] border border-zinc-800 text-xs p-2 rounded focus:outline-none"
-                    />
-                  </div>
+const target = `                <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-mono mt-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  <span>{item.startDate && item.endDate ? \`\${new Date(item.startDate).toLocaleDateString()} - \${new Date(item.endDate).toLocaleDateString()}\` : 'No Expiry Date'}</span>
                 </div>
-              )}
-            </div>`
-);
-fs.writeFileSync('src/components/MediaManager.tsx', code);
-console.log("Patched media manager");
+
+                <div className="flex items-center gap-2 text-[10px] text-zinc-400 font-mono mt-2 bg-black/40 px-2.5 py-1.5 rounded border border-zinc-800/50">
+                  <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  <span className="font-semibold text-zinc-500">Loop Delay:</span>
+                  <input 
+                    type="number"
+                    min="2"
+                    max="300"
+                    value={item.displayDuration || 8}`;
+
+const replace = `                <div className="flex flex-col gap-2 mt-2 bg-black/40 p-2 rounded border border-zinc-800/50">
+                  <div className="flex items-center gap-2 text-[10px] text-zinc-400 font-mono">
+                    <Calendar className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span className="font-semibold text-zinc-500">Expires:</span>
+                    <input 
+                      type="date"
+                      value={item.endDate || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const updated = media.map(m => m.id === item.id ? { ...m, endDate: val, startDate: m.startDate || new Date().toISOString().split('T')[0] } : m);
+                        onUpdateMedia(updated);
+                        
+                        // We also trigger a quiet log for this change if desired, but updating silently is fine too.
+                      }}
+                      className="flex-1 min-w-0 bg-[#15161A] border border-zinc-800 font-mono rounded text-[#D4AF37] px-1.5 py-1 focus:outline-none focus:border-[#D4AF37]/50 focus:ring-0 [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:opacity-50"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] text-zinc-400 font-mono">
+                    <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span className="font-semibold text-zinc-500">Delay:</span>
+                    <input 
+                      type="number"
+                      min="2"
+                      max="300"
+                      value={item.displayDuration || 8}`;
+
+if (code.includes(target)) {
+  code = code.replace(target, replace);
+  fs.writeFileSync('src/components/MediaManager.tsx', code);
+  console.log("Patched successfully!");
+} else {
+  console.log("Target not found. Looking at snippet...");
+  console.log(code.substring(code.indexOf("<div className=\"p-4 flex flex-col gap-3\">"), code.indexOf("<div className=\"p-4 flex flex-col gap-3\">") + 1000));
+}

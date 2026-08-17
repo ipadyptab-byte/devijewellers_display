@@ -222,8 +222,6 @@ const getInitialState = (key, defaultState) => {
     };
     window.addEventListener("storage", handleStorageEvent);
 
-    loadStateFromApi("rates", setRates, INITIAL_RATES);
-    loadStateFromApi("trends", setTrends, INITIAL_TRENDS);
     loadStateFromApi(
       "displaySetting",
       setDisplaySetting,
@@ -271,6 +269,12 @@ const getInitialState = (key, defaultState) => {
 
     socket.on("state_update", ({ module, data }) => {
       const payload = data.payload !== undefined ? data.payload : data;
+      
+      // Update local storage so any future page refresh gets this new value immediately synchronously!
+      try {
+        window.localStorage.setItem(`asm_${module}`, JSON.stringify(payload));
+      } catch (e) {}
+
       switch (module) {
         case "displaySetting":
           setDisplaySetting(payload);
@@ -373,7 +377,25 @@ const getInitialState = (key, defaultState) => {
             platinum: received.platinumSale,
             platinumPurchase: received.platinumPurchase,
           };
-          setRates(enforceRounding(newRates));
+          setRates((prev: JewelleryRates) => {
+            if (JSON.stringify(prev) !== JSON.stringify(newRates)) {
+              const newTrends = {
+                gold24k: newRates.gold24k > prev.gold24k ? "up" : newRates.gold24k < prev.gold24k ? "down" : "neutral",
+                gold22k: newRates.gold22k > prev.gold22k ? "up" : newRates.gold22k < prev.gold22k ? "down" : "neutral",
+                gold20k: "neutral",
+                gold18k: newRates.gold18k > prev.gold18k ? "up" : newRates.gold18k < prev.gold18k ? "down" : "neutral",
+                silver: newRates.silver > prev.silver ? "up" : newRates.silver < prev.silver ? "down" : "neutral",
+                platinum: "neutral",
+              } as RateTrends;
+              setTrends(newTrends);
+              
+              const rounded = enforceRounding(newRates);
+              try { window.localStorage.setItem('asm_trends', JSON.stringify(newTrends)); } catch(e){}
+              try { window.localStorage.setItem('asm_rates', JSON.stringify(rounded)); } catch(e){}
+              return rounded;
+            }
+            return prev;
+          });
         }
       })
       .catch((err) => {
@@ -423,7 +445,18 @@ const getInitialState = (key, defaultState) => {
             };
             setRates((prev: JewelleryRates) => {
               if (JSON.stringify(prev) !== JSON.stringify(newRates)) {
+                const newTrends = {
+                  gold24k: newRates.gold24k > prev.gold24k ? "up" : newRates.gold24k < prev.gold24k ? "down" : "neutral",
+                  gold22k: newRates.gold22k > prev.gold22k ? "up" : newRates.gold22k < prev.gold22k ? "down" : "neutral",
+                  gold20k: "neutral",
+                  gold18k: newRates.gold18k > prev.gold18k ? "up" : newRates.gold18k < prev.gold18k ? "down" : "neutral",
+                  silver: newRates.silver > prev.silver ? "up" : newRates.silver < prev.silver ? "down" : "neutral",
+                  platinum: "neutral",
+                } as RateTrends;
+                setTrends(newTrends);
+                
                 const rounded = enforceRounding(newRates);
+                try { window.localStorage.setItem('asm_trends', JSON.stringify(newTrends)); } catch(e){}
                 try { window.localStorage.setItem('asm_rates', JSON.stringify(rounded)); } catch(e){}
                 return rounded;
               }
