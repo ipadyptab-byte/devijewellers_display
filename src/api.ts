@@ -248,6 +248,7 @@ apiRouter.get("/init-db", async (req, res) => {
       .execute(
         sql`
       ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS enable_auto_sync BOOLEAN NOT NULL DEFAULT true;
+      ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS page_reload_interval_minutes INTEGER NOT NULL DEFAULT 60;
     `,
       )
       .catch(() => {});
@@ -339,6 +340,8 @@ apiRouter.get("/settings", async (req, res) => {
         await db
           .execute(
             sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS enable_auto_sync BOOLEAN NOT NULL DEFAULT true;`,
+              sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS page_reload_interval_minutes INTEGER NOT NULL DEFAULT 60;`,
+            sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS page_reload_interval_minutes INTEGER NOT NULL DEFAULT 60;`,
           )
           .catch(console.error);
         await db
@@ -554,13 +557,12 @@ apiRouter.post("/state/:module", async (req, res) => {
         .json({ error: "Body must be a JSON object or array" });
     }
 
-    await db
-      .insert(globalState)
-      .values({ moduleName: module, data: req.body as any })
-      .onConflictDoUpdate({
-        target: globalState.moduleName,
-        set: { data: req.body as any, updatedAt: new Date() },
-      });
+    const existing = await db.select().from(globalState).where(sql`module_name = ${module}`).limit(1);
+    if (existing.length > 0) {
+      await db.update(globalState).set({ data: req.body as any, updatedAt: new Date() }).where(sql`module_name = ${module}`);
+    } else {
+      await db.insert(globalState).values({ moduleName: module, data: req.body as any });
+    }
 
     // Broadcast to other clients that a state changed
     const io = req.app.get("io");

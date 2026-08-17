@@ -117,29 +117,38 @@ const enforceRounding = (r: any): any => {
   };
 };
 
-  const [rates, setRates] = useState<JewelleryRates>(enforceRounding(INITIAL_RATES));
-  const [trends, setTrends] = useState<RateTrends>(INITIAL_TRENDS);
+
+const getInitialState = (key, defaultState) => {
+  if (typeof window === 'undefined') return defaultState;
+  try {
+    const item = window.localStorage.getItem(`asm_${key}`);
+    return item ? JSON.parse(item) : defaultState;
+  } catch (error) {
+    return defaultState;
+  }
+};
+
+  const [rates, setRates] = useState<JewelleryRates>(enforceRounding(getInitialState('rates', INITIAL_RATES)));
+  const [trends, setTrends] = useState<RateTrends>(getInitialState('trends', INITIAL_TRENDS));
   const [displaySetting, setDisplaySetting] = useState<DisplaySetting>(
-    INITIAL_DISPLAY_SETTING,
+    getInitialState('displaySetting', INITIAL_DISPLAY_SETTING),
   );
-  const [branches, setBranches] = useState<Branch[]>(INITIAL_BRANCHES);
-  const [media, setMedia] = useState<MediaItem[]>(INITIAL_MEDIA);
-  const [promos, setPromos] = useState<PromoItem[]>(INITIAL_PROMOS);
+  const [branches, setBranches] = useState<Branch[]>(getInitialState('branches', INITIAL_BRANCHES));
+  const [media, setMedia] = useState<MediaItem[]>(getInitialState('media', INITIAL_MEDIA));
+  const [promos, setPromos] = useState<PromoItem[]>(getInitialState('promos', INITIAL_PROMOS));
   const [saleStatuses, setSaleStatuses] =
-    useState<SaleStatusItem[]>(INITIAL_SALE_STATUS);
+    useState<SaleStatusItem[]>(getInitialState('saleStatuses', INITIAL_SALE_STATUS));
   const [displays, setDisplays] =
-    useState<ConnectedDisplay[]>(INITIAL_DISPLAYS);
+    useState<ConnectedDisplay[]>(getInitialState('displays', INITIAL_DISPLAYS));
   const [logs, setLogs] = useState<AuditLog[]>(INITIAL_LOGS);
   const [users, setUsers] = useState<UserAccount[]>(INITIAL_USERS);
   const [systemConfig, setSystemConfig] = useState<SystemConfig>(
-    INITIAL_SYSTEM_CONFIG,
+    getInitialState('systemConfig', INITIAL_SYSTEM_CONFIG),
   );
   const [history, setHistory] = useState<RateHistoryEntry[]>(INITIAL_HISTORY);
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
 
-  // 1. Load initial states from backend SQL database, fallback to localStorage if they exist, or seed them
-  useEffect(() => {
-    const loadStateFromApi = async (
+  const loadStateFromApi = async (
       key: string,
       setter: (val: any) => void,
       backup: any,
@@ -151,14 +160,12 @@ const enforceRounding = (r: any): any => {
           if (contentType && contentType.indexOf("application/json") !== -1) {
             const json = await res.json();
             if (json.data) {
-              
               let payload = json.data.payload !== undefined ? json.data.payload : json.data;
               if (key === 'rates') {
                 if (!payload.gold24kExchange && payload.gold24k) payload.gold24kExchange = payload.gold24k - 50;
                 payload = enforceRounding(payload);
               }
               setter(payload);
-
               return;
             }
           }
@@ -173,6 +180,9 @@ const enforceRounding = (r: any): any => {
         setter(backup);
       }
     };
+
+  // 1. Load initial states from backend SQL database, fallback to localStorage if they exist, or seed them
+  useEffect(() => {
 
     const handleStorageEvent = (e: StorageEvent) => {
       if (e.key && e.key.startsWith("asm_") && e.newValue) {
@@ -240,7 +250,7 @@ const enforceRounding = (r: any): any => {
       loadStateFromApi("media", setMedia, INITIAL_MEDIA);
       loadStateFromApi("promos", setPromos, INITIAL_PROMOS);
       loadStateFromApi("branches", setBranches, INITIAL_BRANCHES);
-    }, 600000); // 10 minutes instead of 15s to save Vercel Free Tier requests
+    }, (displaySetting?.refreshInterval && displaySetting.refreshInterval > 10 ? displaySetting.refreshInterval : 30) * 1000);
 
     return () => {
       clearInterval(statePoll);
@@ -417,7 +427,7 @@ const enforceRounding = (r: any): any => {
         });
     };
 
-    const intervalMs = 300000; // Poll rates every 5 minutes maximum to save free tier limits. Realtime updates are handled by WebSockets.
+    const intervalMs = (displaySetting?.refreshInterval && displaySetting.refreshInterval > 5 ? displaySetting.refreshInterval : 15) * 1000; // Respect user-defined interval
     const fallbackPoll = setInterval(fetchCurrentRates, intervalMs);
 
     return () => clearInterval(fallbackPoll);
@@ -434,7 +444,7 @@ const enforceRounding = (r: any): any => {
         const timer = setTimeout(() => {
           window.location.reload();
         }, reloadMs);
-        return () => clearTimeout(timer);
+        return () => clearInterval(timer);
       }
     }
   }, [isStandaloneTvDisplay, displaySetting?.pageReloadIntervalMinutes]);

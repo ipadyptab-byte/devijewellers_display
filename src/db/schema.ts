@@ -56,6 +56,7 @@ export const syncLogs = pgTable('sync_logs', {
 export const calculationSettings = pgTable('calculation_settings', {
   id: serial('id').primaryKey(),
   syncIntervalMinutes: integer('sync_interval_minutes').notNull().default(5),
+  pageReloadIntervalMinutes: integer('page_reload_interval_minutes').notNull().default(60),
   silverPurchaseOffset: integer('silver_purchase_offset').notNull().default(5000),
   platinumPurchaseOffset: integer('platinum_purchase_offset').notNull().default(4000),
   gold24kExcMult: doublePrecision('gold24k_exc_mult').notNull().default(0.990),
