@@ -627,7 +627,7 @@ export default function TVDisplay({
       {/* HEADER SECTION */}
       <div
         id="tv-header"
-        className="flex flex-col sm:flex-row justify-between items-center pb-1 mb-1 relative z-10 gap-2 shrink-0"
+        className="flex flex-col sm:flex-row justify-between items-center pb-1 mb-1 pt-3 md:pt-5 relative z-10 gap-2 shrink-0"
       >
         {/* Dynamic Display Mode Badges (Non-obtrusive but informative branding) */}
         <div className="flex flex-1 justify-start">
