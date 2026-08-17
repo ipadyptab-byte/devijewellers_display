@@ -48,7 +48,8 @@ export interface DisplaySetting {
   theme: DisplayTheme;
   campaignId: string;
   tickerText: string;
-  refreshInterval: number; // How often to check for rate updates
+  refreshInterval: number;
+  pageReloadIntervalMinutes?: number; // How often to check for rate updates
   ratesDisplayDuration?: number; // How long to show rates before switching to media
   slideshowDisplayDuration?: number; // How long the slide show should remain on screen
   rateFontSize?: number; // Sale Rate Numbers Font Size in px

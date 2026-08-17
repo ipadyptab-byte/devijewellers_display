@@ -82,6 +82,7 @@ export const INITIAL_DISPLAY_SETTING: DisplaySetting = {
   campaignId: 'p2',
   tickerText: '✨ Special Exchange Offer: Get 100% Value on Old Gold Exchange. Flat 15% OFF on Making Charges on Premium Collections! ✨ Book your consultation today.',
   refreshInterval: 15,
+  pageReloadIntervalMinutes: 60,
   ratesDisplayDuration: 12,
   slideshowDisplayDuration: 8,
   rateFontSize: 72,

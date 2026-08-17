@@ -458,7 +458,7 @@ export default function TVDisplay({
   return (
     <div
       id="tv-display-root"
-      className={`w-full text-[#F8F5EE] select-none h-full flex flex-col justify-between font-poppins transition-all duration-700 p-0 relative overflow-hidden ${isRotatingBgActive ? "bg-black" : themeBg} @container`}
+      className={`w-full text-[#F8F5EE] select-none h-full flex flex-col justify-between font-poppins transition-all duration-700 p-0 pb-3 md:pb-5 relative overflow-hidden ${isRotatingBgActive ? "bg-black" : themeBg} @container`}
       style={{
         backgroundColor: isRotatingBgActive
           ? "transparent"
@@ -726,7 +726,7 @@ export default function TVDisplay({
           {/* MAIN RATE CARDS GRID (FLAT RESPONSIVE AUTO-GRID) */}
           <div
             id="tv-main-rates-grid"
-            className={`flex-1 min-h-0 min-w-0 w-full h-full responsive-rates-grid gap-1 md:gap-2 my-1 ${isPortrait ? "force-portrait" : ""}`}
+            className={`flex-1 min-h-0 min-w-0 w-full h-full responsive-rates-grid gap-1 md:gap-2 mt-1 mb-3 md:mb-5 ${isPortrait ? "force-portrait" : ""}`}
             style={{ "--max-items": Math.max(goldRateItems.length, silverRateItems.length) } as any}
           >
             {/* GOLD RATES ITEMS */}
