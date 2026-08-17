@@ -4,8 +4,6 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { doc, setDoc, getDoc, onSnapshot } from "firebase/firestore";
-import { db, auth } from "./lib/firebase";
 import { io } from "socket.io-client";
 import {
   JewelleryRates,
@@ -492,26 +490,6 @@ const getInitialState = (key, defaultState) => {
     }
   }, [isStandaloneTvDisplay, displaySetting?.pageReloadIntervalMinutes]);
 
-  // Listen to Firestore for history
-  useEffect(() => {
-    const unsubscribeHistory = onSnapshot(
-      doc(db, "system", "history"),
-      (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          if (data.entries && Array.isArray(data.entries)) {
-            setHistory(data.entries);
-            saveToStorage("history", data.entries);
-          }
-        }
-      },
-    );
-
-    return () => {
-      unsubscribeHistory();
-    };
-  }, []);
-
   // Sync to database triggers (localstorage helper)
   const saveToStorage = (key: string, data: any) => {
     localStorage.setItem(`asm_${key}`, JSON.stringify(data));
@@ -534,17 +512,7 @@ const getInitialState = (key, defaultState) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newRates)
-    }).catch(err => console.error("Failed to push manual rates to backend:", err));
-
-    setDoc(
-      doc(db, "system", "rates"),
-      {
-        ...newRates,
-        updatedAt: new Date().toISOString(),
-      },
-      { merge: true },
-    ).catch((err) => console.error("Firebase write error:", err));
-  };
+    }).catch(err => console.error("Failed to push manual rates to backend:", err));  };
 
   const handleUpdateTrends = (newTrends: RateTrends) => {
     setTrends(newTrends);
@@ -599,16 +567,7 @@ const getInitialState = (key, defaultState) => {
 
   const handleUpdateHistory = (newHistory: RateHistoryEntry[]) => {
     setHistory(newHistory);
-    saveToStorage("history", newHistory);
-    setDoc(
-      doc(db, "system", "history"),
-      {
-        entries: newHistory,
-        updatedAt: new Date().toISOString(),
-      },
-      { merge: true },
-    ).catch((err) => console.error("Firebase write error:", err));
-  };
+    saveToStorage("history", newHistory);  };
 
   // Register dynamic log audits
   const triggerLogRecord = (action: string, details: string) => {
