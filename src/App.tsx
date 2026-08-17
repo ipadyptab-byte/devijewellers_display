@@ -148,7 +148,7 @@ const getInitialState = (key, defaultState) => {
   const [history, setHistory] = useState<RateHistoryEntry[]>(INITIAL_HISTORY);
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
 
-  const loadStateFromApi = async (
+    const loadStateFromApi = async (
       key: string,
       setter: (val: any) => void,
       backup: any,
@@ -166,6 +166,12 @@ const getInitialState = (key, defaultState) => {
                 payload = enforceRounding(payload);
               }
               setter(payload);
+              
+              // Also update localStorage so next initial load gets the absolute newest value immediately
+              try {
+                window.localStorage.setItem(`asm_${key}`, JSON.stringify(payload));
+              } catch (e) {}
+              
               return;
             }
           }
@@ -324,8 +330,10 @@ const getInitialState = (key, defaultState) => {
 
         setRates((prev: JewelleryRates) => {
           if (JSON.stringify(prev) !== JSON.stringify(newRates)) {
-            saveToStorage("rates", newRates);
-            return enforceRounding(newRates);
+            const rounded = enforceRounding(newRates);
+            saveToStorage("rates", rounded);
+            try { window.localStorage.setItem('asm_rates', JSON.stringify(rounded)); } catch(e){}
+            return rounded;
           }
           return prev;
         });
@@ -415,7 +423,9 @@ const getInitialState = (key, defaultState) => {
             };
             setRates((prev: JewelleryRates) => {
               if (JSON.stringify(prev) !== JSON.stringify(newRates)) {
-                return enforceRounding(newRates);
+                const rounded = enforceRounding(newRates);
+                try { window.localStorage.setItem('asm_rates', JSON.stringify(rounded)); } catch(e){}
+                return rounded;
               }
               return prev;
             });
