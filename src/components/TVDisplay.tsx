@@ -458,7 +458,7 @@ export default function TVDisplay({
   return (
     <div
       id="tv-display-root"
-      className={`w-full text-[#F8F5EE] select-none h-full flex flex-col justify-between font-poppins transition-all duration-700 p-0 pb-3 md:pb-5 relative overflow-hidden ${isRotatingBgActive ? "bg-black" : themeBg} @container`}
+      className={`w-full text-[#F8F5EE] select-none h-full flex flex-col justify-between font-poppins transition-all duration-700 p-0 pb-3 md:pb-5 px-3 md:px-5 relative overflow-hidden ${isRotatingBgActive ? "bg-black" : themeBg} @container`}
       style={{
         backgroundColor: isRotatingBgActive
           ? "transparent"
