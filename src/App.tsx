@@ -842,7 +842,20 @@ const getInitialState = (key, defaultState) => {
           <div>
             {/* Branded Logo Column */}
             <div className="flex items-center gap-3 px-2 py-4 border-b border-zinc-800/80 mb-5 select-none">
-              <img src="/logo.png" alt="Devi Jewellers" className="w-full h-auto max-w-[180px] object-contain" id="app-brand-title" />
+              <div className="w-10 h-10 rounded-full border border-[#D4AF37] flex items-center justify-center shadow-md bg-[#D4AF37]/5 shrink-0">
+                <Sparkles className="w-5 h-5 text-[#D4AF37] animate-pulse" />
+              </div>
+              <div>
+                <h1
+                  className="text-sm font-black font-serif tracking-[0.15em] text-white uppercase"
+                  id="app-brand-title"
+                >
+                  {systemConfig.logoText || "DEVIJEWELLERS"}
+                </h1>
+                <p className="text-[9px] text-white font-mono uppercase tracking-[0.2em] leading-none mt-0.5 font-bold">
+                  PRESTIGE ATELIER
+                </p>
+              </div>
             </div>
 
             <nav className="flex flex-col gap-1 overflow-y-auto max-h-[80vh] pr-1">
