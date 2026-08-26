@@ -779,19 +779,12 @@ export default function SaleStatus({
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 mt-1">
+              <div className="mt-1">
                 <button
-                  onClick={() => sharePoster('whatsapp')}
-                  className="bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/30 font-medium text-xs py-2 px-3 rounded hover:bg-[#25D366]/20 transition-all flex items-center justify-center gap-1.5"
+                  onClick={() => sharePoster('native')}
+                  className="w-full bg-blue-500/10 text-blue-400 border border-blue-500/30 font-medium text-xs py-2 px-3 rounded hover:bg-blue-500/20 transition-all flex items-center justify-center gap-1.5"
                 >
-                  <Share2 className="w-3.5 h-3.5" /> SHARE WHATSAPP
-                </button>
-
-                <button
-                  onClick={() => sharePoster('instagram')}
-                  className="bg-[#E1306C]/10 text-[#E1306C] border border-[#E1306C]/30 font-medium text-xs py-2 px-3 rounded hover:bg-[#E1306C]/20 transition-all flex items-center justify-center gap-1.5"
-                >
-                  <Share2 className="w-3.5 h-3.5" /> INSTAGRAM HD
+                  <Share2 className="w-3.5 h-3.5" /> SHARE DEVICE FULL SCREEN IMAGE
                 </button>
               </div>
             </div>
