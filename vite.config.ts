@@ -11,10 +11,10 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['icon.png', 'logo.png'],
+        includeAssets: ['icon.png', 'icon-192.png', 'logo.png'],
         manifest: {
           name: 'DEVIJEWELLERS',
-          short_name: 'DEVIJEWELLERS',
+          short_name: 'DEVI',
           description: 'Elite Jewellery Rate Display Engine',
           theme_color: '#0B0B0D',
           background_color: '#0B0B0D',
@@ -24,7 +24,7 @@ export default defineConfig(() => {
           start_url: '/',
           icons: [
             {
-              src: 'icon.png',
+              src: 'icon-192.png',
               sizes: '192x192',
               type: 'image/png',
             },
