@@ -226,8 +226,6 @@ const getInitialState = (key, defaultState) => {
       INITIAL_DISPLAY_SETTING,
     );
     loadStateFromApi("branches", setBranches, INITIAL_BRANCHES);
-    loadStateFromApi("media", setMedia, INITIAL_MEDIA);
-    loadStateFromApi("promos", setPromos, INITIAL_PROMOS);
     loadStateFromApi("saleStatuses", setSaleStatuses, INITIAL_SALE_STATUS);
     loadStateFromApi("displays", setDisplays, INITIAL_DISPLAYS);
     loadStateFromApi("logs", setLogs, INITIAL_LOGS);
