@@ -364,15 +364,34 @@ export default function SaleStatus({
     return canvas;
   }
 
+  const [generatedImageFallback, setGeneratedImageFallback] = useState<string | null>(null);
+
   const drawAndDownloadCanvas = async () => {
     const canvas = await drawPosterCanvas();
     if (!canvas) return;
 
-    // Save logic
-    const link = document.createElement('a');
-    link.download = `Devijewellers_Rates_${activeTheme}_${activeBranchName.replace(/\s+/g, '_')}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
+    const base64 = canvas.toDataURL('image/png');
+
+    // Android Native App hook
+    if ((window as any).AndroidNative && (window as any).AndroidNative.downloadImage) {
+      (window as any).AndroidNative.downloadImage(base64, `Devijewellers_Rates_${activeTheme}_${activeBranchName.replace(/\s+/g, '_')}.png`);
+      return;
+    }
+
+    // Try standard web download
+    try {
+      const link = document.createElement('a');
+      link.download = `Devijewellers_Rates_${activeTheme}_${activeBranchName.replace(/\s+/g, '_')}.png`;
+      link.href = base64;
+      link.click();
+      
+      // If it's a mobile device (touch interface), the click() might fail silently in webviews
+      if ('ontouchstart' in window && !navigator.userAgent.includes('Windows')) {
+        setGeneratedImageFallback(base64);
+      }
+    } catch(e) {
+      setGeneratedImageFallback(base64);
+    }
 
     // Trigger logs
     const dimText = aspectRatio === '1:1' ? '1200x1200px square' : aspectRatio === '4:5' ? '1200x1500px portrait' : '1200x2133px story format';
@@ -385,6 +404,8 @@ export default function SaleStatus({
   const sharePoster = async (platform: string) => {
     const canvas = await drawPosterCanvas();
     if (!canvas) return;
+
+    const base64data = canvas.toDataURL('image/png');
 
     canvas.toBlob(async (blob) => {
       if (!blob) return;
@@ -403,14 +424,9 @@ export default function SaleStatus({
       try {
         // Android WebView Native share intercept
         if ((window as any).AndroidNative && (window as any).AndroidNative.shareImage) {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const base64data = reader.result as string;
-            const targetPkg = platform === 'whatsapp' ? 'com.whatsapp' : (platform === 'instagram' ? 'com.instagram.android' : '');
-            (window as any).AndroidNative.shareImage(base64data, shareData.title, shareData.text, targetPkg);
-            onTriggerLog('Share Rate Poster', `Native Android App Share triggered for ${platform} - Branch: ${activeBranchName}.`);
-          };
-          reader.readAsDataURL(blob);
+          const targetPkg = platform === 'whatsapp' ? 'com.whatsapp' : (platform === 'instagram' ? 'com.instagram.android' : '');
+          (window as any).AndroidNative.shareImage(base64data, shareData.title, shareData.text, targetPkg);
+          onTriggerLog('Share Rate Poster', `Native Android App Share triggered for ${platform} - Branch: ${activeBranchName}.`);
           return;
         }
 
@@ -419,16 +435,18 @@ export default function SaleStatus({
           onTriggerLog('Share Rate Poster', `Successfully requested OS Native Share for ${platform} - Branch: ${activeBranchName}.`);
         } else {
           // Fallback if can't share native
-          setSharePlatform(platform as 'whatsapp' | 'instagram'); 
-          setShowShareModal(true);
+          setGeneratedImageFallback(base64data);
         }
       } catch (err) {
         console.error("Error sharing poster:", err);
+        setGeneratedImageFallback(base64data);
       }
     }, 'image/png');
   };
 
   const triggerPrintWindow = () => {
+    // If in Android Webview, hide or disable print
+    if ((window as any).AndroidNative) return;
     onTriggerLog('Print Rate Poster', `Initiated printing job for branch: ${activeBranchName} rate card.`);
     window.print();
   };
@@ -1189,7 +1207,45 @@ export default function SaleStatus({
       )}
 
       {/* --- SOCIAL SHARE MODAL DIALOG MOCKUP --- */}
+      
+      {generatedImageFallback && (
+        <div className="fixed inset-0 bg-black/90 flex flex-col items-center justify-center p-4 z-50 animate-fade-in backdrop-blur-sm">
+          <div className="bg-[#15161A] border border-[#D4AF37] rounded-lg max-w-sm w-full p-4 relative flex flex-col gap-3 shadow-2xl">
+            <button
+              onClick={() => setGeneratedImageFallback(null)}
+              className="absolute -top-3 -right-3 bg-red-600 text-white rounded-full p-1.5 shadow-lg border-2 border-black"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <h3 className="text-center font-serif text-sm font-bold text-[#D4AF37] uppercase tracking-wider">
+              Ready for WhatsApp & Instagram
+            </h3>
+            <p className="text-center text-xs text-zinc-300">
+              Your device requires manual sharing. <strong className="text-emerald-400">Long-press the image below</strong> and select <strong>"Share image"</strong> or <strong>"Save image"</strong>.
+            </p>
+            <div className="rounded-lg overflow-hidden border-2 border-zinc-700 bg-black flex justify-center mt-2 max-h-[60vh]">
+              <img src={generatedImageFallback} alt="Generated Poster" className="w-auto h-full object-contain select-auto" style={{ WebkitTouchCallout: 'default' }} />
+            </div>
+            
+            <div className="mt-3 p-3 bg-zinc-900 rounded border border-zinc-800">
+              <p className="text-[10px] text-zinc-400 font-mono mb-1">WhatsApp Text (Tap to copy):</p>
+              <textarea 
+                readOnly
+                onClick={(e) => {
+                  (e.target as HTMLTextAreaElement).select();
+                  navigator.clipboard.writeText((e.target as HTMLTextAreaElement).value);
+                }}
+                value={whatsappMessage.replace(/{branch}/g, activeBranchName).replace(/{date}/g, new Date().toDateString()).replace(/{24k}/g, rates.gold24k ? rates.gold24k.toString() : '').replace(/{22k}/g, rates.gold22k ? rates.gold22k.toString() : '').replace(/{18k}/g, rates.gold18k ? rates.gold18k.toString() : '').replace(/{silver}/g, rates.silver ? rates.silver.toString() : '').replace(/{contact}/g, activeBranchContact)}
+                className="w-full bg-black text-emerald-400 text-[10px] p-2 rounded resize-none border border-zinc-800"
+                rows={4}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+      
       {showShareModal && (
+
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-[#15161A] border-2 border-[#D4AF37] rounded-lg max-w-lg w-full p-6 relative flex flex-col gap-4">
             
