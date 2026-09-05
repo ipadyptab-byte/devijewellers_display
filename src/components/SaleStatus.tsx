@@ -409,9 +409,16 @@ export default function SaleStatus({
       // When sharing an image directly to WhatsApp or Instagram, sending text alongside 
       // the file array often forces Android to attach system-level meta titles or URLs.
       // To strictly share ONLY the image file, we omit the text and title fields.
-      const shareData = {
+      // On browsers, we might want to include the text, but on Android, 
+      // providing only the file ensures no link/text previews mess up the image share.
+      const shareData: ShareData = {
         files: [file]
       };
+      
+      // Only attach text if we are NOT in an Android webview context to avoid dirty shares
+      if (!(window as any).AndroidNative) {
+        shareData.text = interpolatedMessage;
+      }
 
       try {
         // Android WebView Native share intercept
