@@ -184,76 +184,72 @@ export default function SaleStatus({
       cardBg = '#111111';
       accentColor = '#D4AF37';
       borderStyle = 'solid';
+    } else if (activeTheme === 'emerald_luxury') {
+      bgColor = '#021C11';
+      cardBg = '#062B1C';
+      accentColor = '#4ADE80';
+      borderStyle = 'solid';
+    } else if (activeTheme === 'royal_sapphire') {
+      bgColor = '#040F2D';
+      cardBg = '#0A1A45';
+      accentColor = '#60A5FA';
+      borderStyle = 'double';
     }
 
-    // 1. Fill outer background
+    // 1. Background Fill
     ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, cWidth, cHeight);
 
-    // 2. Draw luxury borders
-    ctx.lineWidth = 3;
+    // 2. Inner Card Box
+    ctx.fillStyle = cardBg;
+    ctx.fillRect(50, 50, cWidth - 100, cHeight - 100);
+
+    // 3. Border Framing
+    ctx.lineWidth = 4;
     ctx.strokeStyle = accentColor;
-    ctx.strokeRect(30, 30, cWidth - 60, cHeight - 60);
-
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = `${accentColor}80`;
-    ctx.strokeRect(40, 40, cWidth - 80, cHeight - 80);
-
     if (borderStyle === 'double') {
-      // Midnight gold double border
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = `${accentColor}44`;
-      ctx.strokeRect(55, 55, cWidth - 110, cHeight - 110);
-    } else if (borderStyle === 'ornament') {
-      // Draw luxury outer corner squares or stars
+      ctx.strokeRect(70, 70, cWidth - 140, cHeight - 140);
+      ctx.lineWidth = 1;
+      ctx.strokeRect(80, 80, cWidth - 160, cHeight - 160);
+    } else if (borderStyle === 'solid') {
+      ctx.strokeRect(60, 60, cWidth - 120, cHeight - 120);
+    } else {
+      ctx.strokeRect(70, 70, cWidth - 140, cHeight - 140);
+      ctx.beginPath();
+      ctx.arc(70, 70, 15, 0, Math.PI * 2);
+      ctx.arc(cWidth - 70, 70, 15, 0, Math.PI * 2);
+      ctx.arc(70, cHeight - 70, 15, 0, Math.PI * 2);
+      ctx.arc(cWidth - 70, cHeight - 70, 15, 0, Math.PI * 2);
       ctx.fillStyle = accentColor;
-      const cornerSize = 15;
-      const xOffsets = [60, cWidth - 60];
-      const yOffsets = [60, cHeight - 60];
-      xOffsets.forEach(x => {
-        yOffsets.forEach(y => {
-          ctx.beginPath();
-          ctx.arc(x, y, cornerSize, 0, Math.PI * 2);
-          ctx.fill();
-        });
-      });
+      ctx.fill();
     }
 
-    // Now, push all the following content down by an offset to center vertically.
-    const verticalOffset = (cHeight - 1200) / 2;
-    ctx.translate(0, verticalOffset);
+    // 4. Logo / Top branding
+    try {
+      const logoImg = new Image();
+      logoImg.crossOrigin = "anonymous";
+      logoImg.src = "/logo.png";
+      
+      await new Promise((resolve, reject) => {
+        logoImg.onload = resolve;
+        logoImg.onerror = resolve;
+      });
 
-    // 3. Draw Inner Panel Card
-    ctx.fillStyle = cardBg;
-    ctx.beginPath();
-    ctx.roundRect(80, 80, 1040, 1040, 16);
-    ctx.fill();
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = `${accentColor}40`;
-    ctx.stroke();
-
-    // 4. Logo element
-    const logoImg = new Image();
-    logoImg.src = systemConfig.logoImageBase64 ? systemConfig.logoImageBase64 : '/logo.png';
-    logoImg.crossOrigin = 'anonymous';
-
-    await new Promise((resolve) => {
-      logoImg.onload = resolve;
-      logoImg.onerror = resolve; // Continue if drawing fails
-    });
-
-    if (logoImg.complete && logoImg.naturalWidth) {
-      const targetHeight = 130;
-      const targetWidth = logoImg.width * (targetHeight / logoImg.height);
-      ctx.drawImage(logoImg, 600 - targetWidth / 2, 110, targetWidth, targetHeight);
-    } else if (!logoImg.complete || !logoImg.naturalWidth) {
-      if (systemConfig.logoText) {
-          ctx.fillStyle = accentColor;
-          ctx.font = "bold 56px 'Poppins', sans-serif";
-          ctx.textAlign = 'center';
-          ctx.letterSpacing = "4px";
-          ctx.fillText(systemConfig.logoText, 600, 180);
+      if (logoImg.complete && logoImg.naturalWidth) {
+        const targetHeight = 120;
+        const targetWidth = logoImg.width * (targetHeight / logoImg.height);
+        ctx.drawImage(logoImg, 600 - targetWidth / 2, 110, targetWidth, targetHeight);
+      } else if (!logoImg.complete || !logoImg.naturalWidth) {
+        if (systemConfig.logoText) {
+            ctx.fillStyle = accentColor;
+            ctx.font = "bold 56px 'Poppins', sans-serif";
+            ctx.textAlign = 'center';
+            ctx.letterSpacing = "4px";
+            ctx.fillText(systemConfig.logoText, 600, 180);
+        }
       }
+    } catch(e) {
+       console.log(e);
     }
 
     // Custom Header Title
@@ -261,7 +257,7 @@ export default function SaleStatus({
     ctx.fillStyle = accentColor;
     ctx.font = "bold 56px 'Playfair Display', serif";
     ctx.letterSpacing = "6px";
-    ctx.fillText(`${headerTitle || 'DAILY RATES'}`.toUpperCase(), 600, 310);
+    ctx.fillText(`${headerTitle || 'BULLION RATES'}`.toUpperCase(), 600, 310);
 
     // Branch Name
     ctx.fillStyle = textColor;
@@ -307,15 +303,18 @@ export default function SaleStatus({
     if (showSilver) displayItems.push({ label: 'SILVER RATE', sub: '1 kg', val: formatINR(rates.silver) });
     if (showPlatinum) displayItems.push({ label: 'PLATINUM PT950', sub: '10gm', val: formatINR(rates.platinum) });
 
-    let currentY = 610;
+    let currentY = aspectRatio === '1:1' ? 610 : aspectRatio === '4:5' ? 700 : 850;
+    let rowIncrement = aspectRatio === '1:1' ? 115 : aspectRatio === '4:5' ? 145 : 215;
+
     displayItems.forEach((item, index) => {
       // Row divider
       if (index > 0) {
         ctx.strokeStyle = `${accentColor}20`;
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(140, currentY - 30);
-        ctx.lineTo(1060, currentY - 30);
+        const dividerY = currentY - (rowIncrement * 0.25);
+        ctx.moveTo(140, dividerY);
+        ctx.lineTo(1060, dividerY);
         ctx.stroke();
       }
 
@@ -328,9 +327,7 @@ export default function SaleStatus({
       ctx.fillStyle = mutedTextColor;
       ctx.font = "24px 'Poppins', sans-serif";
       ctx.fillText(item.sub, 180, currentY + 55);
-
       
-
       // Sale Value column
       const valGrad = ctx.createLinearGradient(800, 0, 1020, 0);
       valGrad.addColorStop(0, '#FFFFFF');
@@ -340,7 +337,7 @@ export default function SaleStatus({
       ctx.textAlign = 'right';
       ctx.fillText(item.val, 1020, currentY + 30);
 
-      currentY += 115;
+      currentY += rowIncrement;
     });
 
     // 10. Footer info
@@ -606,7 +603,7 @@ export default function SaleStatus({
               </h3>
 
               {/* Theme selectors */}
-              <div className="flex flex-col gap-2">
+              <div className={`flex flex-col $gap-2 transition-all duration-500`}>
                 <label className="text-[10px] font-mono uppercase tracking-widest text-[#D4AF37] font-semibold">Select Canvas Theme Style</label>
                 <div className="grid grid-cols-2 gap-2">
                   {[
@@ -755,7 +752,7 @@ export default function SaleStatus({
                     <span className="pr-1 text-right">Today's Rate</span>
                   </div>
 
-                  <div className="flex flex-col gap-2">
+                  <div className={`flex flex-col ${aspectRatio === '1:1' ? 'gap-2' : aspectRatio === '4:5' ? 'gap-5' : 'gap-8'}`}>
                     {show24k && (
                       <div className="flex justify-between items-center pb-1.5 border-b border-zinc-800/40 text-xs">
                         <div>
@@ -775,9 +772,7 @@ export default function SaleStatus({
                           <p className="text-[16px] text-zinc-300 font-mono mt-0.5 uppercase">10gm</p>
                         </div>
                         <div className="flex gap-4 text-right">
-                          
                           <div className="flex flex-col">
-                            
                             <span className={`text-[32px] font-bold ${previewStyles.priceText}`}>
                               {formatINR(rates.gold22k)}
                             </span>
@@ -793,9 +788,7 @@ export default function SaleStatus({
                           <p className="text-[16px] text-zinc-300 font-mono mt-0.5 uppercase">10gm</p>
                         </div>
                         <div className="flex gap-4 text-right">
-                          
                           <div className="flex flex-col">
-                            
                             <span className={`text-[32px] font-bold ${previewStyles.priceText}`}>
                               {formatINR(rates.gold18k)}
                             </span>
@@ -836,15 +829,9 @@ export default function SaleStatus({
                     {customRatesNote}
                   </p>
                 </div>
-
               </div>
-
             </div>
-
-
-
           </div>
-
         </div>
       ) : (
         /* --- VIEW 2: ORIGINAL SHOWROOM CAMPAIGN TAGS --- */
