@@ -415,8 +415,9 @@ export default function SaleStatus({
         files: [file]
       };
       
-      // Only attach text if we are NOT in an Android webview context to avoid dirty shares
-      if (!(window as any).AndroidNative) {
+      // Only attach text if we are NOT in an Android webview context (or Capacitor) to avoid dirty shares
+      const isNativeAndroid = (window as any).AndroidNative || ((window as any).Capacitor && (window as any).Capacitor.isNativePlatform());
+      if (!isNativeAndroid) {
         shareData.text = interpolatedMessage;
       }
 
@@ -1098,19 +1099,7 @@ export default function SaleStatus({
               <img src={generatedImageFallback} alt="Generated Poster" className="w-auto h-full object-contain select-auto" style={{ WebkitTouchCallout: 'default' }} />
             </div>
             
-            <div className="mt-3 p-3 bg-zinc-900 rounded border border-zinc-800">
-              <p className="text-[10px] text-zinc-400 font-mono mb-1">WhatsApp Text (Tap to copy):</p>
-              <textarea 
-                readOnly
-                onClick={(e) => {
-                  (e.target as HTMLTextAreaElement).select();
-                  navigator.clipboard.writeText((e.target as HTMLTextAreaElement).value);
-                }}
-                value={whatsappMessage.replace(/{branch}/g, activeBranchName).replace(/{date}/g, new Date().toDateString()).replace(/{24k}/g, rates.gold24k ? rates.gold24k.toString() : '').replace(/{22k}/g, rates.gold22k ? rates.gold22k.toString() : '').replace(/{18k}/g, rates.gold18k ? rates.gold18k.toString() : '').replace(/{silver}/g, rates.silver ? rates.silver.toString() : '').replace(/{contact}/g, activeBranchContact)}
-                className="w-full bg-black text-emerald-400 text-[10px] p-2 rounded resize-none border border-zinc-800"
-                rows={4}
-              />
-            </div>
+
           </div>
         </div>
       )}
