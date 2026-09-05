@@ -226,6 +226,8 @@ const getInitialState = (key, defaultState) => {
       INITIAL_DISPLAY_SETTING,
     );
     loadStateFromApi("branches", setBranches, INITIAL_BRANCHES);
+    loadStateFromApi("media", setMedia, INITIAL_MEDIA);
+    loadStateFromApi("promos", setPromos, INITIAL_PROMOS);
     loadStateFromApi("saleStatuses", setSaleStatuses, INITIAL_SALE_STATUS);
     loadStateFromApi("displays", setDisplays, INITIAL_DISPLAYS);
     loadStateFromApi("logs", setLogs, INITIAL_LOGS);
@@ -239,7 +241,9 @@ const getInitialState = (key, defaultState) => {
     const savedSync = localStorage.getItem("asm_lastSyncTime");
     if (savedSync) setLastSyncTime(JSON.parse(savedSync));
 
-    // Fallback polling for states to ensure multi-tab/multi-device sync
+    // Fallback polling for small config states to ensure multi-tab/multi-device sync
+    // DO NOT poll media or promos here, as base64 images will destroy bandwidth limits.
+    // Media and promos will update via the full page reload interval.
     const statePoll = setInterval(() => {
       loadStateFromApi(
         "displaySetting",
@@ -247,8 +251,7 @@ const getInitialState = (key, defaultState) => {
         INITIAL_DISPLAY_SETTING,
       );
       loadStateFromApi("systemConfig", setSystemConfig, INITIAL_SYSTEM_CONFIG);
-      loadStateFromApi("media", setMedia, INITIAL_MEDIA);
-      loadStateFromApi("promos", setPromos, INITIAL_PROMOS);
+      // branches is also small text, safe to poll
       loadStateFromApi("branches", setBranches, INITIAL_BRANCHES);
     }, (displaySetting?.refreshInterval && displaySetting.refreshInterval > 10 ? displaySetting.refreshInterval : 30) * 1000);
 
@@ -962,9 +965,7 @@ const getInitialState = (key, defaultState) => {
               >
                 <Menu className="w-5 h-5" />
               </button>
-              <h1 className="text-xs font-bold font-serif tracking-[0.2em] text-white">
-                {systemConfig.logoText || "DEVIJEWELLERS"}
-              </h1>
+              <img src="/logo.png" alt="Devi Jewellers" className="h-10 w-auto max-w-[180px] object-contain" />
             </div>
 
             <div className="flex items-center gap-2">
