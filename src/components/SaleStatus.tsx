@@ -656,33 +656,6 @@ export default function SaleStatus({
                 </div>
               </div>
 
-              {/* Branch Locations mapping */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 mb-1">Select Showroom Branches</label>
-                <div className="flex flex-col gap-2 bg-[#0B0B0D] border border-zinc-800 p-2 rounded max-h-32 overflow-y-auto">
-                  {branches.map(b => (
-                    <label key={b.id} className="flex items-center gap-2 cursor-pointer group">
-                      <input 
-                        type="checkbox"
-                        checked={selectedBranchIds.includes(b.id)}
-                        onChange={() => {
-                          if (selectedBranchIds.includes(b.id)) {
-                            // Don't uncheck if it's the last one
-                            if (selectedBranchIds.length > 1) {
-                              setSelectedBranchIds(selectedBranchIds.filter(id => id !== b.id));
-                            }
-                          } else {
-                            setSelectedBranchIds([...selectedBranchIds, b.id]);
-                          }
-                        }}
-                        className="w-4 h-4 accent-[#D4AF37] bg-zinc-900 border-zinc-700 rounded"
-                      />
-                      <span className="text-xs text-zinc-300 group-hover:text-white transition-colors">{b.name}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
               {/* Title Header text  */}
               <div className="flex flex-col gap-1">
                 <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Heading Title</label>
@@ -943,22 +916,7 @@ export default function SaleStatus({
 
             </div>
 
-            {/* WhatsApp Share Message Editor under the preview */}
-            <div className="w-full mt-4 flex flex-col gap-1 bg-[#15161A] p-4 rounded-xl border border-zinc-800 shadow-lg" style={{ maxWidth: aspectRatio === '1:1' ? '550px' : aspectRatio === '4:5' ? '440px' : '310px', alignSelf: 'center' }}>
-              <div className="flex justify-between items-center mb-1">
-                <label className="text-[10px] font-mono uppercase tracking-widest text-[#25D366] flex items-center gap-1.5"><Share2 className="w-3.5 h-3.5" /> WhatsApp Message Copy</label>
-                <span className="text-[8px] sm:text-[9px] text-zinc-500 font-mono italic">Variables: {'{branch}'}, {'{date}'}, {'{24k}'}, {'{22k}'}, {'{18k}'}, {'{silver}'}</span>
-              </div>
-              <textarea
-                value={whatsappMessage}
-                onChange={(e) => {
-                  setWhatsappMessage(e.target.value);
-                  localStorage.setItem('whatsappMessage', e.target.value);
-                }}
-                className="bg-[#0B0B0D] border border-zinc-800 text-[11px] p-3 rounded text-zinc-300 focus:outline-none focus:border-[#25D366]/50 min-h-[80px] sm:min-h-[100px] resize-none font-mono selection:bg-[#25D366]/30 leading-relaxed"
-                placeholder="Type your custom share text here..."
-              />
-            </div>
+
 
           </div>
 
