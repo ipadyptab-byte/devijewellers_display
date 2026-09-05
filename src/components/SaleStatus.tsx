@@ -415,9 +415,10 @@ export default function SaleStatus({
         .replace(/{branch}/g, activeBranchName)
         .replace(/{date}/g, new Date().toDateString());
 
+      // When sharing an image directly to WhatsApp or Instagram, sending text alongside 
+      // the file array often forces Android to attach system-level meta titles or URLs.
+      // To strictly share ONLY the image file, we omit the text and title fields.
       const shareData = {
-        title: 'Today\'s Premium Rates',
-        text: interpolatedMessage,
         files: [file]
       };
 
@@ -425,7 +426,7 @@ export default function SaleStatus({
         // Android WebView Native share intercept
         if ((window as any).AndroidNative && (window as any).AndroidNative.shareImage) {
           const targetPkg = platform === 'whatsapp' ? 'com.whatsapp' : (platform === 'instagram' ? 'com.instagram.android' : '');
-          (window as any).AndroidNative.shareImage(base64data, shareData.title, shareData.text, targetPkg);
+          (window as any).AndroidNative.shareImage(base64data, "", "", targetPkg);
           onTriggerLog('Share Rate Poster', `Native Android App Share triggered for ${platform} - Branch: ${activeBranchName}.`);
           return;
         }
