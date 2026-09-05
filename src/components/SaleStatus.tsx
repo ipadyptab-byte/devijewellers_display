@@ -3,6 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 import React, { useState, useRef, useEffect } from 'react';
 import { SaleStatusItem, Branch, JewelleryRates, SystemConfig } from '../types';
 import { 
@@ -255,7 +258,7 @@ export default function SaleStatus({
     // Custom Header Title
     ctx.textAlign = 'center';
     ctx.fillStyle = accentColor;
-    ctx.font = "bold 56px 'Playfair Display', serif";
+    ctx.font = "900 72px 'Playfair Display', serif";
     ctx.letterSpacing = "6px";
     ctx.fillText(`${headerTitle || 'BULLION RATES'}`.toUpperCase(), 600, 310);
 
@@ -276,10 +279,22 @@ export default function SaleStatus({
 
     // 8. Rates Table Header Block
     ctx.fillStyle = `${accentColor}15`;
-    ctx.fillRect(150, 520, 900, 50);
-    ctx.lineWidth = 1;
     ctx.strokeStyle = `${accentColor}50`;
-    ctx.strokeRect(150, 520, 900, 50);
+    ctx.lineWidth = 2;
+    const hX = 140, hY = 520, hW = 920, hH = 55, hRad = 16;
+    ctx.beginPath();
+    ctx.moveTo(hX + hRad, hY);
+    ctx.lineTo(hX + hW - hRad, hY);
+    ctx.quadraticCurveTo(hX + hW, hY, hX + hW, hY + hRad);
+    ctx.lineTo(hX + hW, hY + hH - hRad);
+    ctx.quadraticCurveTo(hX + hW, hY + hH, hX + hW - hRad, hY + hH);
+    ctx.lineTo(hX + hRad, hY + hH);
+    ctx.quadraticCurveTo(hX, hY + hH, hX, hY + hH - hRad);
+    ctx.lineTo(hX, hY + hRad);
+    ctx.quadraticCurveTo(hX, hY, hX + hRad, hY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
 
     ctx.fillStyle = accentColor;
     ctx.font = "bold 20px 'Poppins', sans-serif";
@@ -301,35 +316,54 @@ export default function SaleStatus({
     let rowIncrement = aspectRatio === '1:1' ? 115 : aspectRatio === '4:5' ? 145 : 215;
 
     displayItems.forEach((item, index) => {
-      // Row divider
-      if (index > 0) {
-        ctx.strokeStyle = `${accentColor}20`;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        const dividerY = currentY - (rowIncrement * 0.25);
-        ctx.moveTo(140, dividerY);
-        ctx.lineTo(1060, dividerY);
-        ctx.stroke();
-      }
+      // Draw Box Border
+      const boxHeight = rowIncrement * 0.85; 
+      const boxY = currentY - (rowIncrement * 0.35);
+      const radius = 24;
+      const x = 140;
+      const w = 920;
+      
+      ctx.fillStyle = "rgba(0,0,0,0.2)";
+      ctx.strokeStyle = `${accentColor}60`;
+      ctx.lineWidth = 2;
+      
+      ctx.beginPath();
+      ctx.moveTo(x + radius, boxY);
+      ctx.lineTo(x + w - radius, boxY);
+      ctx.quadraticCurveTo(x + w, boxY, x + w, boxY + radius);
+      ctx.lineTo(x + w, boxY + boxHeight - radius);
+      ctx.quadraticCurveTo(x + w, boxY + boxHeight, x + w - radius, boxY + boxHeight);
+      ctx.lineTo(x + radius, boxY + boxHeight);
+      ctx.quadraticCurveTo(x, boxY + boxHeight, x, boxY + boxHeight - radius);
+      ctx.lineTo(x, boxY + radius);
+      ctx.quadraticCurveTo(x, boxY, x + radius, boxY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
 
-      // Label & Sub labels
+      // Center all text in the box
+      const boxCenterY = boxY + (boxHeight / 2);
+      
+      // Label
       ctx.fillStyle = textColor;
-      ctx.font = "bold 46px 'Playfair Display', serif";
-      ctx.textAlign = 'left';
-      ctx.fillText(item.label, 180, currentY + 15);
+      ctx.font = "900 56px 'Playfair Display', serif";
+      ctx.textAlign = 'center';
+      ctx.fillText(item.label, 600, boxCenterY - 30);
 
+      // Sub label
       ctx.fillStyle = mutedTextColor;
-      ctx.font = "24px 'Poppins', sans-serif";
-      ctx.fillText(item.sub, 180, currentY + 55);
+      ctx.font = "600 28px 'Poppins', sans-serif";
+      ctx.textAlign = 'center';
+      ctx.fillText(item.sub, 600, boxCenterY + 5);
       
       // Sale Value column
-      const valGrad = ctx.createLinearGradient(800, 0, 1020, 0);
+      const valGrad = ctx.createLinearGradient(300, 0, 900, 0);
       valGrad.addColorStop(0, '#FFFFFF');
       valGrad.addColorStop(1, accentColor);
       ctx.fillStyle = valGrad;
-      ctx.font = "bold 56px 'Playfair Display', serif";
-      ctx.textAlign = 'right';
-      ctx.fillText(item.val, 1020, currentY + 30);
+      ctx.font = "900 76px 'Playfair Display', serif";
+      ctx.textAlign = 'center';
+      ctx.fillText(item.val, 600, boxCenterY + 70);
 
       currentY += rowIncrement;
     });
@@ -415,13 +449,35 @@ export default function SaleStatus({
         files: [file]
       };
       
-      // Only attach text if we are NOT in an Android webview context (or Capacitor) to avoid dirty shares
-      const isNativeAndroid = (window as any).AndroidNative || ((window as any).Capacitor && (window as any).Capacitor.isNativePlatform());
-      if (!isNativeAndroid) {
-        shareData.text = interpolatedMessage;
-      }
+      // User specifically requested to share ONLY the image, no text in any environment
+      // We will leave shareData.text undefined
 
       try {
+        // Capacitor Native Share Handling
+        if (Capacitor.isNativePlatform()) {
+          try {
+            const base64DataRaw = base64data.split(',')[1];
+            const fileName = `Devijewellers_Rates_${activeTheme}_${Date.now()}.png`;
+            
+            const savedFile = await Filesystem.writeFile({
+              path: fileName,
+              data: base64DataRaw,
+              directory: Directory.Cache
+            });
+            
+            await Share.share({
+              url: savedFile.uri,
+              dialogTitle: platform === 'whatsapp' ? 'Share to WhatsApp' : 'Share to Instagram'
+            });
+            
+            onTriggerLog('Share Rate Poster', `Successfully requested Capacitor Share for ${platform} - Branch: ${activeBranchName}.`);
+            return;
+          } catch (capErr: any) {
+            console.error("Capacitor share failed:", capErr);
+            // Fall through to fallback
+          }
+        }
+
         // Android WebView Native share intercept
         if ((window as any).AndroidNative && (window as any).AndroidNative.shareImage) {
           const targetPkg = platform === 'whatsapp' ? 'com.whatsapp' : (platform === 'instagram' ? 'com.instagram.android' : '');
@@ -437,8 +493,9 @@ export default function SaleStatus({
           // Fallback if can't share native
           setGeneratedImageFallback(base64data);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error sharing poster:", err);
+        alert("Native share failed: " + (err.message || err.name || err.toString()));
         setGeneratedImageFallback(base64data);
       }
     }, 'image/png');
@@ -749,75 +806,68 @@ export default function SaleStatus({
 
                 {/* Grid holding the rate rows */}
                 <div className="flex flex-col gap-2.5 my-2">
-                  <div className={`flex justify-between items-center text-[10px] font-mono p-1 rounded uppercase tracking-wider border-b ${previewStyles.tableHeader}`}>
-                    <span className="pl-1">Purity Grade Specifications</span>
-                    <span className="pr-1 text-right">Today's Rate</span>
-                  </div>
+                  
 
                   <div className={`flex flex-col ${aspectRatio === '1:1' ? 'gap-2' : aspectRatio === '4:5' ? 'gap-5' : 'gap-8'}`}>
                     {show24k && (
-                      <div className="flex justify-between items-center pb-1.5 border-b border-zinc-800/40 text-xs">
-                        <div>
-                          <p className="font-serif font-black text-white text-[28px] tracking-wider flex items-center gap-1">24K Gold Rate <Sparkles className="w-4 h-4 text-[#D4AF37]" /></p>
-                          <p className="text-[16px] text-[#D4AF37] font-semibold uppercase font-mono mt-0.5">10gm</p>
+                      <div className={`flex flex-col justify-center items-center text-center p-3 md:p-4 border rounded-xl bg-black/20 ${previewStyles.divider} text-xs gap-1 md:gap-2`}>
+                        <div className="flex flex-col items-center">
+                          <p className="font-serif font-black text-white text-[32px] md:text-[36px] tracking-wider flex items-center gap-1">24K Gold Rate <Sparkles className="w-4 h-4 text-[#D4AF37]" /></p>
+                          <p className="text-[18px] text-[#D4AF37] font-bold uppercase font-mono mt-0.5">10gm</p>
                         </div>
-                        <span className={`text-[32px] font-bold ${previewStyles.priceText}`}>
+                        <span className={`text-[36px] md:text-[46px] font-black tracking-tight ${previewStyles.priceText}`}>
                           {formatINR(rates.gold24k)}
                         </span>
                       </div>
                     )}
 
                     {show22k && (
-                      <div className="flex justify-between items-center pb-1.5 border-b border-zinc-800/40 text-xs">
-                        <div>
-                          <p className="font-serif font-black text-white text-[28px] tracking-wider">22K Gold Rate</p>
-                          <p className="text-[16px] text-zinc-300 font-mono mt-0.5 uppercase">10gm</p>
+                      <div className={`flex flex-col justify-center items-center text-center p-3 md:p-4 border rounded-xl bg-black/20 ${previewStyles.divider} text-xs gap-1 md:gap-2`}>
+                        <div className="flex flex-col items-center">
+                          <p className="font-serif font-black text-white text-[32px] md:text-[38px] tracking-wider">22K Gold Rate</p>
+                          <p className="text-[18px] text-zinc-300 font-bold uppercase font-mono mt-0.5">10gm</p>
                         </div>
-                        <div className="flex gap-4 text-right">
-                          <div className="flex flex-col">
-                            <span className={`text-[32px] font-bold ${previewStyles.priceText}`}>
-                              {formatINR(rates.gold22k)}
-                            </span>
-                          </div>
+                        <div className="flex flex-col items-center">
+                          <span className={`text-[36px] md:text-[46px] font-black tracking-tight ${previewStyles.priceText}`}>
+                            {formatINR(rates.gold22k)}
+                          </span>
                         </div>
                       </div>
                     )}
 
                     {show18k && (
-                      <div className="flex justify-between items-center pb-1.5 border-b border-zinc-800/40 text-xs">
-                        <div>
-                          <p className="font-serif font-black text-white text-[28px] tracking-wider">18K Gold Rate</p>
-                          <p className="text-[16px] text-zinc-300 font-mono mt-0.5 uppercase">10gm</p>
+                      <div className={`flex flex-col justify-center items-center text-center p-3 md:p-4 border rounded-xl bg-black/20 ${previewStyles.divider} text-xs gap-1 md:gap-2`}>
+                        <div className="flex flex-col items-center">
+                          <p className="font-serif font-black text-white text-[32px] md:text-[38px] tracking-wider">18K Gold Rate</p>
+                          <p className="text-[18px] text-zinc-300 font-bold uppercase font-mono mt-0.5">10gm</p>
                         </div>
-                        <div className="flex gap-4 text-right">
-                          <div className="flex flex-col">
-                            <span className={`text-[32px] font-bold ${previewStyles.priceText}`}>
-                              {formatINR(rates.gold18k)}
-                            </span>
-                          </div>
+                        <div className="flex flex-col items-center">
+                          <span className={`text-[36px] md:text-[46px] font-black tracking-tight ${previewStyles.priceText}`}>
+                            {formatINR(rates.gold18k)}
+                          </span>
                         </div>
                       </div>
                     )}
 
                     {showSilver && (
-                      <div className="flex justify-between items-center pb-1.5 border-b border-zinc-800/40 text-xs">
-                        <div>
-                          <p className="font-serif font-black text-white text-[28px] tracking-wider">Silver</p>
-                          <p className="text-[16px] text-zinc-300 font-mono mt-0.5 uppercase">1 kg</p>
+                      <div className={`flex flex-col justify-center items-center text-center p-3 md:p-4 border rounded-xl bg-black/20 ${previewStyles.divider} text-xs gap-1 md:gap-2`}>
+                        <div className="flex flex-col items-center">
+                          <p className="font-serif font-black text-white text-[32px] md:text-[38px] tracking-wider">Silver</p>
+                          <p className="text-[18px] text-zinc-300 font-bold uppercase font-mono mt-0.5">1 kg</p>
                         </div>
-                        <span className={`text-[32px] font-bold ${previewStyles.priceText}`}>
+                        <span className={`text-[36px] md:text-[46px] font-black tracking-tight ${previewStyles.priceText}`}>
                           {formatINR(rates.silver)}
                         </span>
                       </div>
                     )}
 
                     {showPlatinum && (
-                      <div className="flex justify-between items-center pb-1.5 border-b border-zinc-800/40 text-xs">
-                        <div>
-                          <p className="font-serif font-black text-white text-[28px] tracking-wider">Platinum Pt950</p>
-                          <p className="text-[16px] text-zinc-300 font-mono mt-0.5 uppercase">10gm</p>
+                      <div className={`flex flex-col justify-center items-center text-center p-3 md:p-4 border rounded-xl bg-black/20 ${previewStyles.divider} text-xs gap-1 md:gap-2`}>
+                        <div className="flex flex-col items-center">
+                          <p className="font-serif font-black text-white text-[32px] md:text-[38px] tracking-wider">Platinum Pt950</p>
+                          <p className="text-[18px] text-zinc-300 font-bold uppercase font-mono mt-0.5">10gm</p>
                         </div>
-                        <span className={`text-[32px] font-bold ${previewStyles.priceText}`}>
+                        <span className={`text-[36px] md:text-[46px] font-black tracking-tight ${previewStyles.priceText}`}>
                           {formatINR(rates.platinum)}
                         </span>
                       </div>
@@ -1089,11 +1139,8 @@ export default function SaleStatus({
             >
               <X className="w-4 h-4" />
             </button>
-            <h3 className="text-center font-serif text-sm font-bold text-[#D4AF37] uppercase tracking-wider">
-              Ready for WhatsApp & Instagram
-            </h3>
-            <p className="text-center text-xs text-zinc-300">
-              Your device requires manual sharing. <strong className="text-emerald-400">Long-press the image below</strong> and select <strong>"Share image"</strong> or <strong>"Save image"</strong>.
+            <p className="text-center text-xs text-zinc-300 mb-1">
+              <strong className="text-emerald-400">Long-press the image</strong> to share to WhatsApp/Instagram.
             </p>
             <div className="rounded-lg overflow-hidden border-2 border-zinc-700 bg-black flex justify-center mt-2 max-h-[60vh]">
               <img src={generatedImageFallback} alt="Generated Poster" className="w-auto h-full object-contain select-auto" style={{ WebkitTouchCallout: 'default' }} />
