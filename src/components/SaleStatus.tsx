@@ -68,7 +68,7 @@ export default function SaleStatus({
   const [sharePlatform, setSharePlatform] = useState<'whatsapp' | 'instagram'>('whatsapp');
   const [copiedText, setCopiedText] = useState<boolean>(false);
   const [whatsappMessage, setWhatsappMessage] = useState<string>(() => {
-    const defaultMsg = `👑 *{header}* 👑\n📍 _{branch}_\n📅 {date}\n━━━━━━━━━━━━━━━━━━━━\n✨ *24K Gold:* ₹{24k}/10g\n🏆 *22K Gold:* ₹{22k}/10g\n⭐ *18K Gold:* ₹{18k}/10g\n🥈 *Silver:* ₹{silver}/1Kg\n━━━━━━━━━━━━━━━━━━━━\n📞 Contact: {contact}`;
+    const defaultMsg = `👑 *{header}* 👑\n📅 {date}\n━━━━━━━━━━━━━━━━━━━━\n✨ *24K Gold:* ₹{24k}/10g\n🏆 *22K Gold:* ₹{22k}/10g\n⭐ *18K Gold:* ₹{18k}/10g\n🥈 *Silver:* ₹{silver}/1Kg\n━━━━━━━━━━━━━━━━━━━━\n📞 Contact: {contact}`;
     return localStorage.getItem('whatsappMessage') || defaultMsg;
   });
 
@@ -258,12 +258,6 @@ export default function SaleStatus({
     ctx.font = "bold 56px 'Playfair Display', serif";
     ctx.letterSpacing = "6px";
     ctx.fillText(`${headerTitle || 'BULLION RATES'}`.toUpperCase(), 600, 310);
-
-    // Branch Name
-    ctx.fillStyle = textColor;
-    ctx.font = "bold 32px 'Poppins', sans-serif";
-    ctx.letterSpacing = "4px";
-    ctx.fillText(`${activeBranchName.toUpperCase()}`, 600, 360);
 
     // 5. Time Block
     ctx.textAlign = 'center';
