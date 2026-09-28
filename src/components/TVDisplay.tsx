@@ -308,46 +308,46 @@ export default function TVDisplay({
 
   // Handle design parameters depending on the active Theme
   // midnight_gold vs royal_emerald vs festival
-  let themeBg = "bg-[#0B0B0D]";
-  let themeCard = "bg-[#15161A] border-[#D4AF37]/30 shadow-2xl";
-  let accentColor = "text-[#D4AF37]";
-  let bgAccentLine = "bg-[#D4AF37]";
-  let sheenColor = "rgba(212, 175, 55, 0.12)";
+  let themeBg = "bg-[#111319]";
+  let themeCard = "bg-[#1B1E28] border-[#FFD700]/50 shadow-2xl";
+  let accentColor = "text-[#FFD700]";
+  let bgAccentLine = "bg-[#FFD700]";
+  let sheenColor = "rgba(255, 215, 0, 0.25)";
   let festivalGreeting = "A Festival of Prosperity & Light";
 
   if (theme === "royal_emerald") {
-    themeBg = "bg-[#041510]";
-    themeCard = "bg-[#06241C] border-[#10B981]/20";
-    accentColor = "text-[#F4D03F]"; // Keep gold text for elegance
+    themeBg = "bg-[#062018]";
+    themeCard = "bg-[#0A3327] border-[#10B981]/45";
+    accentColor = "text-[#FFD700]"; // Radiant gold text for elegance
     bgAccentLine = "bg-[#10B981]";
-    sheenColor = "rgba(16, 185, 129, 0.09)";
+    sheenColor = "rgba(16, 185, 129, 0.2)";
   } else if (theme === "festival") {
-    themeBg = "bg-[#1E090F]"; // deep red wine / maroon
-    themeCard = "bg-[#2B0E17] border-[#EA580C]/20";
-    accentColor = "text-[#F59E0B]";
-    bgAccentLine = "bg-[#EA580C]";
-    sheenColor = "rgba(234, 88, 12, 0.1)";
+    themeBg = "bg-[#280B13]"; // deep vibrant ruby wine
+    themeCard = "bg-[#38111D] border-[#F59E0B]/45";
+    accentColor = "text-[#FFC72C]";
+    bgAccentLine = "bg-[#F59E0B]";
+    sheenColor = "rgba(245, 158, 11, 0.22)";
     festivalGreeting = "🔮 Dhanteras & Diwali Swarna Mahotsav 🔮";
   } else if (theme === "rose_gold_velvet") {
-    themeBg = "bg-[#1C101A]";
-    themeCard = "bg-[#2B1425] border-[#E0A899]/30 shadow-2xl";
-    accentColor = "text-[#E0A899]";
-    bgAccentLine = "bg-[#E0A899]";
-    sheenColor = "rgba(224, 168, 153, 0.12)";
+    themeBg = "bg-[#241320]";
+    themeCard = "bg-[#361A2F] border-[#F7C6B8]/50 shadow-2xl";
+    accentColor = "text-[#FCD7CD]";
+    bgAccentLine = "bg-[#F7C6B8]";
+    sheenColor = "rgba(247, 198, 184, 0.22)";
     festivalGreeting = "✨ Rose Gold & Diamond Masterpieces ✨";
   } else if (theme === "ocean_platinum") {
-    themeBg = "bg-[#0B141E]";
-    themeCard = "bg-[#0F2030] border-[#E5E7EB]/20";
-    accentColor = "text-[#E5E7EB]";
-    bgAccentLine = "bg-[#3B82F6]";
-    sheenColor = "rgba(229, 231, 235, 0.1)";
+    themeBg = "bg-[#0E1A29]";
+    themeCard = "bg-[#152B42] border-[#93C5FD]/45";
+    accentColor = "text-[#FFFFFF]";
+    bgAccentLine = "bg-[#60A5FA]";
+    sheenColor = "rgba(255, 255, 255, 0.2)";
     festivalGreeting = "❄️ Premium Platinum & Solitaires ❄️";
   } else if (theme === "sunset_amber") {
-    themeBg = "bg-[#1B0F05]";
-    themeCard = "bg-[#2B190B] border-[#F59E0B]/35";
-    accentColor = "text-[#F59E0B]";
-    bgAccentLine = "bg-[#D97706]";
-    sheenColor = "rgba(245, 158, 11, 0.15)";
+    themeBg = "bg-[#231206]";
+    themeCard = "bg-[#381E0C] border-[#FBBF24]/55";
+    accentColor = "text-[#FDE047]";
+    bgAccentLine = "bg-[#F59E0B]";
+    sheenColor = "rgba(251, 191, 36, 0.25)";
     festivalGreeting = "☀️ Golden Hour Exotics ☀️";
   }
 
@@ -496,21 +496,21 @@ export default function TVDisplay({
           background: linear-gradient(
             110deg,
             rgba(255,255,255,0) 0%,
-            rgba(255,255,255,0) 40%,
-            rgba(255,255,255,0.12) 50%,
-            rgba(255,255,255,0) 60%,
+            rgba(255,255,255,0) 35%,
+            rgba(255,255,255,0.28) 50%,
+            rgba(255,255,255,0) 65%,
             rgba(255,255,255,0) 100%
           );
           background-size: 200% 100%;
-          animation: metallic-sweep 9s infinite linear;
+          animation: metallic-sweep 7s infinite linear;
         }
         @keyframes custom-flash-green {
           0%, 100% { background-color: transparent; }
-          50% { background-color: rgba(34, 197, 94, 0.15); border-color: #22c55e; }
+          50% { background-color: rgba(34, 197, 94, 0.25); border-color: #22c55e; }
         }
         @keyframes custom-flash-red {
           0%, 100% { background-color: transparent; }
-          50% { background-color: rgba(239, 68, 68, 0.15); border-color: #ef4444; }
+          50% { background-color: rgba(239, 68, 68, 0.25); border-color: #ef4444; }
         }
         .flash-up-anim {
           animation: custom-flash-green 1.5s ease-in-out infinite;
@@ -537,6 +537,9 @@ export default function TVDisplay({
         .clip-hexagon {
           clip-path: url(#hex-rounded);
         }
+        .tv-media-vivid {
+          filter: brightness(1.15) contrast(1.08) saturate(1.15);
+        }
 
         ${
           customGoldColor
@@ -544,18 +547,19 @@ export default function TVDisplay({
           #tv-display-root .text-\\[\\#D4AF37\\] { color: ${customGoldColor} !important; }
           #tv-display-root .bg-\\[\\#D4AF37\\] { background-color: ${customGoldColor} !important; }
           #tv-display-root .border-\\[\\#D4AF37\\] { border-color: ${customGoldColor} !important; }
-          #tv-display-root .border-\\[\\#D4AF37\\]\\/10 { border-color: rgba(${overrideGoldRgb}, 0.1) !important; }
-          #tv-display-root .border-\\[\\#D4AF37\\]\\/15 { border-color: rgba(${overrideGoldRgb}, 0.15) !important; }
-          #tv-display-root .border-\\[\\#D4AF37\\]\\/30 { border-color: rgba(${overrideGoldRgb}, 0.3) !important; }
-          #tv-display-root .border-\\[\\#D4AF37\\]\\/35 { border-color: rgba(${overrideGoldRgb}, 0.35) !important; }
-          #tv-display-root .border-\\[\\#D4AF37\\]\\/40 { border-color: rgba(${overrideGoldRgb}, 0.4) !important; }
-          #tv-display-root .border-\\[\\#D4AF37\\]\\/45 { border-color: rgba(${overrideGoldRgb}, 0.45) !important; }
-          #tv-display-root .bg-\\[\\#D4AF37\\]\\/10 { background-color: rgba(${overrideGoldRgb}, 0.1) !important; }
-          #tv-display-root .bg-\\[\\#D4AF37\\]\\/5 { background-color: rgba(${overrideGoldRgb}, 0.05) !important; }
+          #tv-display-root .border-\\[\\#D4AF37\\]\\/10 { border-color: rgba(${overrideGoldRgb}, 0.2) !important; }
+          #tv-display-root .border-\\[\\#D4AF37\\]\\/15 { border-color: rgba(${overrideGoldRgb}, 0.25) !important; }
+          #tv-display-root .border-\\[\\#D4AF37\\]\\/30 { border-color: rgba(${overrideGoldRgb}, 0.45) !important; }
+          #tv-display-root .border-\\[\\#D4AF37\\]\\/35 { border-color: rgba(${overrideGoldRgb}, 0.5) !important; }
+          #tv-display-root .border-\\[\\#D4AF37\\]\\/40 { border-color: rgba(${overrideGoldRgb}, 0.6) !important; }
+          #tv-display-root .border-\\[\\#D4AF37\\]\\/45 { border-color: rgba(${overrideGoldRgb}, 0.65) !important; }
+          #tv-display-root .bg-\\[\\#D4AF37\\]\\/10 { background-color: rgba(${overrideGoldRgb}, 0.15) !important; }
+          #tv-display-root .bg-\\[\\#D4AF37\\]\\/5 { background-color: rgba(${overrideGoldRgb}, 0.08) !important; }
           #tv-display-root .gold-gradient {
-            background: linear-gradient(to right, ${customGoldColor}, #FFFFFF, ${customGoldColor}) !important;
+            background: linear-gradient(to right, #FFFFFF, ${customGoldColor}, #FFFFFF) !important;
             -webkit-background-clip: text !important;
             -webkit-text-fill-color: transparent !important;
+            filter: drop-shadow(0 2px 8px rgba(${overrideGoldRgb}, 0.45)) !important;
           }
         `
             : ""
@@ -573,9 +577,10 @@ export default function TVDisplay({
             : ""
         }
         .silver-gradient {
-          background: linear-gradient(to right, #B0BEC5, #FFFFFF, #B0BEC5) !important;
+          background: linear-gradient(to right, #FFFFFF 0%, #F8FAFC 35%, #E2E8F0 70%, #CBD5E1 100%) !important;
           -webkit-background-clip: text !important;
           -webkit-text-fill-color: transparent !important;
+          filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.45)) !important;
         }
       `}</style>
 
@@ -592,7 +597,27 @@ export default function TVDisplay({
       {rotateBackgroundEnabled &&
         activeBackgroundMedia.length > 0 &&
         activeBackgroundMedia[bgMediaIndex] && (
-          <div className="absolute inset-0 z-0 transition-opacity duration-1000 ease-in-out pointer-events-none">
+          <div className="absolute inset-0 z-0 transition-opacity duration-1000 ease-in-out pointer-events-none flex items-center justify-center overflow-hidden">
+            {/* Ambient blurred backdrop layer to fill screen edges seamlessly */}
+            {activeBackgroundMedia[bgMediaIndex].type === "video" ||
+            activeBackgroundMedia[bgMediaIndex].url.match(/\.(mp4|webm|mov)$/i) ||
+            activeBackgroundMedia[bgMediaIndex].url.startsWith("data:video") ? (
+              <video
+                src={activeBackgroundMedia[bgMediaIndex].url}
+                className="absolute inset-0 w-full h-full object-cover blur-3xl opacity-35 scale-110 pointer-events-none"
+                muted
+                playsInline
+              />
+            ) : (
+              <img
+                src={activeBackgroundMedia[bgMediaIndex].url}
+                className="absolute inset-0 w-full h-full object-cover blur-3xl opacity-35 scale-110 pointer-events-none"
+                referrerPolicy="no-referrer"
+                alt=""
+              />
+            )}
+
+            {/* Uncropped Full Fitted Media (100% visible, adjusted to fit screen) */}
             {activeBackgroundMedia[bgMediaIndex].type === "video" ||
             activeBackgroundMedia[bgMediaIndex].url.match(
               /\.(mp4|webm|mov)$/i,
@@ -601,7 +626,7 @@ export default function TVDisplay({
               <video
                 key={activeBackgroundMedia[bgMediaIndex].id}
                 src={activeBackgroundMedia[bgMediaIndex].url}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain tv-media-vivid relative z-10"
                 autoPlay
                 loop
                 muted
@@ -611,13 +636,13 @@ export default function TVDisplay({
               <img
                 key={activeBackgroundMedia[bgMediaIndex].id}
                 src={activeBackgroundMedia[bgMediaIndex].url}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain tv-media-vivid relative z-10"
                 referrerPolicy="no-referrer"
                 alt="bg media"
               />
             )}
-            {/* Soft dark gradient mask over rotating image to ensure text legibility */}
-            <div className="absolute inset-0 bg-black/60" />
+            {/* Luminous soft overlay mask over rotating image so picture stays bright and fresh */}
+            <div className="absolute inset-0 z-20 bg-black/20 bg-gradient-to-t from-black/45 via-black/10 to-black/25 pointer-events-none" />
           </div>
         )}
 
@@ -748,7 +773,7 @@ export default function TVDisplay({
                         />
 
                         {/* Rate Box Shape Container */}
-                        <div className="relative w-full h-full filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] ">
+                        <div className="relative w-full h-full filter drop-shadow-[0_6px_20px_rgba(0,0,0,0.5)]">
                           {/* SVG PERFECT BORDER FOR SHAPE */}
                           <svg
                             className="absolute inset-0 w-full h-full pointer-events-none z-20"
@@ -758,28 +783,27 @@ export default function TVDisplay({
                             <path
                               d="M 8 0 L 92 0 C 97 0, 100 35, 100 50 C 100 65, 97 100, 92 100 L 8 100 C 3 100, 0 65, 0 50 C 0 35, 3 0, 8 0 Z"
                               fill="none"
-                              className={
-                                customGoldColor ? "" : "stroke-[#D4AF37]"
-                              }
-                              style={
-                                customGoldColor
-                                  ? { stroke: customGoldColor }
-                                  : {}
-                              }
+                              stroke={customGoldColor || "#FFD700"}
                               vectorEffect="non-scaling-stroke"
-                              strokeWidth={3}
-                              opacity={0.9}
+                              strokeWidth={3.5}
+                              opacity={1}
+                              style={{
+                                filter: "drop-shadow(0 0 6px rgba(255, 215, 0, 0.45))",
+                              }}
                             />
                           </svg>
 
                           {/* Inner Fill Layer */}
                           <div
                             className={`clip-hexagon absolute inset-0 z-0 overflow-hidden ${themeCard.split(" ")[0]}`}
+                            style={{
+                              background: "radial-gradient(130% 120% at 50% 0%, #242938 0%, #141720 100%)",
+                            }}
                           >
                             {/* Inner Shine Center Glow */}
-                            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.12)_0%,transparent_70%)] pointer-events-none" />
+                            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.22)_0%,transparent_75%)] pointer-events-none" />
                             {/* Animated Sweep */}
-                            <div className="absolute inset-0 shine-effect opacity-30 mix-blend-screen" />
+                            <div className="absolute inset-0 shine-effect opacity-45 mix-blend-screen" />
                             {flashClass && (
                               <div
                                 className={`absolute inset-0 ${flashClass}`}
@@ -792,30 +816,27 @@ export default function TVDisplay({
                             {/* Gold luxury sparkle top-right */}
                             {(item.key === "gold24k" ||
                               item.key === "gold22k") && (
-                              <div className="absolute top-4 left-6 md:left-10 pointer-events-none opacity-50">
-                                <Sparkles className="w-4 h-4 text-[#F4D03F]" />
+                              <div className="absolute top-4 left-6 md:left-10 pointer-events-none opacity-80">
+                                <Sparkles className="w-4 h-4 text-[#FFF066]" />
                               </div>
                             )}
 
-                            {/* Live indicator removed as requested */}
-
                             <h3
-  className="font-poppins font-bold uppercase tracking-widest text-[#D4AF37] leading-none  whitespace-nowrap shrink-0"
-
+                              className="font-poppins font-bold uppercase tracking-widest text-[#FFD700] leading-none whitespace-nowrap shrink-0 drop-shadow-[0_2px_8px_rgba(255,215,0,0.4)]"
                               style={{
                                 fontSize: labelFontSize ? `clamp(4px, calc(${labelFontSize} * min(1vh, 1vw) / 10.8), min(20vh, 15vw))` : "clamp(12px, min(17vh, 6vw), 80px)",
                               }}
-                            
->
-  <span className="gold-gradient">{item.label}</span>
-  <span className="text-[0.45em] normal-case font-medium tracking-normal opacity-90 gold-gradient"> Rate per 10 gms</span>
-</h3>
+                            >
+                              <span className="gold-gradient">{item.label}</span>
+                              <span className="text-[0.45em] normal-case font-medium tracking-normal opacity-95 text-[#FFF4A3]"> Rate per 10 gms</span>
+                            </h3>
+
                             {/* HUGE Rate Typography */}
                             <div className="flex items-stretch w-full min-h-0 shrink mt-auto mb-auto">
                               {/* Left: SALE */}
                               <div className="flex-1 flex flex-col items-center justify-center px-1">
                                 <span
-                                  className="text-[#FFD700] font-poppins uppercase font-black tracking-[0.1em] border-b border-[#FFD700]/30 pb-0.5 w-full text-center mb-0.5 whitespace-nowrap"
+                                  className="text-[#FFF275] font-poppins uppercase font-black tracking-[0.1em] border-b border-[#FFD700]/50 pb-0.5 w-full text-center mb-0.5 whitespace-nowrap drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]"
                                   style={{
                                     fontSize: saleTitleFontSize ? `clamp(4px, calc(${saleTitleFontSize} * min(1vh, 1vw) / 10.8), min(10vh, 15vw))` : "clamp(8px, min(18vh, 13vw), 90px)",
                                   }}
@@ -823,7 +844,7 @@ export default function TVDisplay({
                                   SALE
                                 </span>
                                 <span
-                                  className="font-poppins font-black tracking-tight leading-none whitespace-nowrap gold-gradient whitespace-nowrap"
+                                  className="font-poppins font-black tracking-tight leading-none whitespace-nowrap gold-gradient drop-shadow-[0_2px_14px_rgba(255,215,0,0.5)]"
                                   style={{
                                     fontSize: (goldFontSize || rateFontSize) ? `clamp(6px, calc(${goldFontSize || rateFontSize} * min(1vh, 1vw) / 10.8), min(35vh, 20vw))` : "clamp(16px, min(45vh, 22vw), 250px)",
                                   }}
@@ -833,14 +854,14 @@ export default function TVDisplay({
                               </div>
 
                               {/* Divider */}
-                              <div className="w-[2px] rounded-full bg-[#FFFFFF] opacity-50 shrink-0 my-3"></div>
+                              <div className="w-[2.5px] rounded-full bg-white opacity-70 shrink-0 my-2 shadow-[0_0_6px_rgba(255,255,255,0.5)]"></div>
 
                               {/* Middle: EXCHANGE (only if available) */}
                               {item.exchangeValue && item.exchangeValue > 0 ? (
                                 <>
                                   <div className="flex-1 flex flex-col items-center justify-center px-1">
                                     <span
-                                      className={`${accentColor} font-poppins uppercase font-black tracking-[0.1em] border-b pb-0.5 w-full text-center mb-0.5 whitespace-nowrap`}
+                                      className={`${accentColor} font-poppins uppercase font-black tracking-[0.1em] border-b pb-0.5 w-full text-center mb-0.5 whitespace-nowrap drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]`}
                                       style={{
                                         borderBottomColor: 'currentColor',
                                         fontSize: saleTitleFontSize ? `clamp(4px, calc(${saleTitleFontSize} * min(1vh, 1vw) / 10.8), min(10vh, 15vw))` : "clamp(8px, min(18vh, 13vw), 90px)",
@@ -849,7 +870,7 @@ export default function TVDisplay({
                                       EXCHANGE
                                     </span>
                                     <span
-                                      className={`font-poppins font-black tracking-tight leading-none whitespace-nowrap ${accentColor} whitespace-nowrap`}
+                                      className={`font-poppins font-black tracking-tight leading-none whitespace-nowrap ${accentColor} drop-shadow-[0_2px_12px_rgba(255,215,0,0.4)]`}
                                       style={{
                                         fontSize: (goldFontSize || rateFontSize) ? `clamp(6px, calc(${goldFontSize || rateFontSize} * min(1vh, 1vw) / 10.8), min(35vh, 20vw))` : "clamp(16px, min(45vh, 22vw), 250px)",
                                       }}
@@ -859,14 +880,14 @@ export default function TVDisplay({
                                   </div>
 
                                   {/* Divider */}
-                                  <div className="w-[2px] rounded-full bg-[#FFFFFF] opacity-50 shrink-0 my-3"></div>
+                                  <div className="w-[2.5px] rounded-full bg-white opacity-70 shrink-0 my-2 shadow-[0_0_6px_rgba(255,255,255,0.5)]"></div>
                                 </>
                               ) : null}
 
                               {/* Right: PURCHASE */}
                               <div className="flex-1 flex flex-col items-center justify-center px-1">
                                 <span
-                                  className="text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] border-b border-zinc-400/30 pb-0.5 w-full text-center mb-0.5 whitespace-nowrap"
+                                  className="text-[#FFFFFF] font-poppins uppercase font-black tracking-[0.1em] border-b border-white/50 pb-0.5 w-full text-center mb-0.5 whitespace-nowrap drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
                                   style={{
                                     fontSize: purchaseTitleFontSize ? `clamp(4px, calc(${purchaseTitleFontSize} * min(1vh, 1vw) / 10.8), min(10vh, 15vw))` : "clamp(8px, min(18vh, 13vw), 90px)",
                                   }}
@@ -874,7 +895,7 @@ export default function TVDisplay({
                                   PURCHASE
                                 </span>
                                 <span
-                                  className="font-poppins font-black tracking-tight leading-none whitespace-nowrap text-zinc-300"
+                                  className="font-poppins font-black tracking-tight leading-none whitespace-nowrap text-[#FFFFFF] drop-shadow-[0_2px_12px_rgba(255,255,255,0.4)]"
                                   style={{
                                     fontSize: purchaseRateFontSize ? `clamp(6px, calc(${purchaseRateFontSize} * min(1vh, 1vw) / 10.8), min(35vh, 20vw))` : "clamp(16px, min(45vh, 22vw), 250px)",
                                   }}
@@ -913,7 +934,7 @@ export default function TVDisplay({
                         />
 
                         {/* Rate Box Shape Container */}
-                        <div className="relative w-full h-full filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] ">
+                        <div className="relative w-full h-full filter drop-shadow-[0_6px_20px_rgba(0,0,0,0.5)]">
                           {/* SVG PERFECT BORDER FOR SHAPE */}
                           <svg
                             className="absolute inset-0 w-full h-full pointer-events-none z-20"
@@ -923,32 +944,27 @@ export default function TVDisplay({
                             <path
                               d="M 8 0 L 92 0 C 97 0, 100 35, 100 50 C 100 65, 97 100, 92 100 L 8 100 C 3 100, 0 65, 0 50 C 0 35, 3 0, 8 0 Z"
                               fill="none"
-                              className={
-                                item.key === "silver"
-                                  ? "stroke-[#ededed]"
-                                  : customGoldColor
-                                    ? ""
-                                    : "stroke-[#D4AF37]"
-                              }
-                              style={
-                                item.key !== "silver" && customGoldColor
-                                  ? { stroke: customGoldColor }
-                                  : {}
-                              }
+                              stroke={item.key === "silver" ? "#FFFFFF" : (customGoldColor || "#FFD700")}
                               vectorEffect="non-scaling-stroke"
-                              strokeWidth={3}
-                              opacity={0.9}
+                              strokeWidth={3.5}
+                              opacity={1}
+                              style={{
+                                filter: item.key === "silver" ? "drop-shadow(0 0 8px rgba(255, 255, 255, 0.55))" : "drop-shadow(0 0 6px rgba(255, 215, 0, 0.45))",
+                              }}
                             />
                           </svg>
 
                           {/* Inner Fill Layer */}
                           <div
                             className={`clip-hexagon absolute inset-0 z-0 overflow-hidden ${themeCard.split(" ")[0]}`}
+                            style={{
+                              background: "radial-gradient(130% 120% at 50% 0%, #262B3A 0%, #151822 100%)",
+                            }}
                           >
                             {/* Inner Shine Center Glow */}
-                            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.12)_0%,transparent_70%)] pointer-events-none" />
+                            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.25)_0%,transparent_75%)] pointer-events-none" />
                             {/* Animated Sweep */}
-                            <div className="absolute inset-0 shine-effect opacity-30 mix-blend-screen" />
+                            <div className="absolute inset-0 shine-effect opacity-45 mix-blend-screen" />
                             {flashClass && (
                               <div
                                 className={`absolute inset-0 ${flashClass}`}
@@ -961,19 +977,19 @@ export default function TVDisplay({
                             {/* Live indicator removed as requested */}
 
                             <h3
-                              className={`font-poppins font-bold uppercase tracking-widest leading-none whitespace-nowrap shrink-0`}
+                              className={`font-poppins font-bold uppercase tracking-widest leading-none whitespace-nowrap shrink-0 drop-shadow-[0_2px_8px_rgba(255,255,255,0.4)]`}
                               style={{
                                 fontSize: (silverLabelFontSize || labelFontSize) ? `clamp(4px, calc(${silverLabelFontSize || labelFontSize} * min(1vh, 1vw) / 10.8), min(20vh, 15vw))` : "clamp(12px, min(17vh, 6vw), 80px)",
                               }}
                             >
-                              <span className="silver-gradient">{item.label}</span> <span className="text-[0.45em] normal-case font-medium tracking-normal opacity-90 silver-gradient">Rate per kg</span>
+                              <span className="silver-gradient">{item.label}</span> <span className="text-[0.45em] normal-case font-medium tracking-normal opacity-95 text-[#F1F5F9]">Rate per kg</span>
                             </h3>
                             {/* HUGE Rate Typography */}
                             <div className="flex items-stretch w-full min-h-0 shrink mt-auto mb-auto">
                               {/* Left: SALE */}
                               <div className="flex-1 flex flex-col items-center justify-center px-1">
                                 <span
-                                  className="text-[#E5E4E2] font-poppins uppercase font-black tracking-[0.1em] border-b border-[#E5E4E2]/30 pb-0.5 w-full text-center mb-0.5 whitespace-nowrap"
+                                  className="text-[#FFFFFF] font-poppins uppercase font-black tracking-[0.1em] border-b border-white/60 pb-0.5 w-full text-center mb-0.5 whitespace-nowrap drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]"
                                   style={{
                                     fontSize: (silverSaleTitleFontSize || saleTitleFontSize) ? `clamp(4px, calc(${silverSaleTitleFontSize || saleTitleFontSize} * min(1vh, 1vw) / 10.8), min(10vh, 15vw))` : "clamp(8px, min(18vh, 13vw), 90px)",
                                   }}
@@ -981,7 +997,7 @@ export default function TVDisplay({
                                   SALE
                                 </span>
                                 <span
-                                  className={`font-poppins font-black tracking-tight leading-none whitespace-nowrap ${item.key === "silver" ? "text-[#ededed]" : "text-[#E5E4E2]"}`}
+                                  className="font-poppins font-black tracking-tight leading-none whitespace-nowrap silver-gradient drop-shadow-[0_2px_14px_rgba(255,255,255,0.5)]"
                                   style={{
                                     fontSize: (silverFontSize || rateFontSize) ? `clamp(6px, calc(${silverFontSize || rateFontSize} * min(1vh, 1vw) / 10.8), min(35vh, 20vw))` : "clamp(16px, min(45vh, 22vw), 250px)",
                                   }}
@@ -991,12 +1007,12 @@ export default function TVDisplay({
                               </div>
 
                               {/* Divider */}
-                              <div className="w-[3px] rounded-full bg-[#FFFFFF] opacity-80 shrink-0 my-2"></div>
+                              <div className="w-[2.5px] rounded-full bg-white opacity-85 shrink-0 my-2 shadow-[0_0_6px_rgba(255,255,255,0.6)]"></div>
 
                               {/* Right: PURCHASE */}
                               <div className="flex-1 flex flex-col items-center justify-center px-1">
                                 <span
-                                  className="text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] border-b border-zinc-400/30 pb-0.5 w-full text-center mb-0.5 whitespace-nowrap"
+                                  className="text-[#FFFFFF] font-poppins uppercase font-black tracking-[0.1em] border-b border-white/50 pb-0.5 w-full text-center mb-0.5 whitespace-nowrap drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
                                   style={{
                                     fontSize: (silverPurchaseTitleFontSize || purchaseTitleFontSize) ? `clamp(4px, calc(${silverPurchaseTitleFontSize || purchaseTitleFontSize} * min(1vh, 1vw) / 10.8), min(10vh, 15vw))` : "clamp(8px, min(18vh, 13vw), 90px)",
                                   }}
@@ -1004,7 +1020,7 @@ export default function TVDisplay({
                                   PURCHASE
                                 </span>
                                 <span
-                                  className={`font-poppins font-black tracking-tight leading-none whitespace-nowrap ${item.key === "silver" ? "text-[#ededed]" : "text-zinc-400"}`}
+                                  className="font-poppins font-black tracking-tight leading-none whitespace-nowrap text-[#FFFFFF] drop-shadow-[0_2px_12px_rgba(255,255,255,0.45)]"
                                   style={{
                                     fontSize: (silverPurchaseRateFontSize || purchaseRateFontSize) ? `clamp(6px, calc(${silverPurchaseRateFontSize || purchaseRateFontSize} * min(1vh, 1vw) / 10.8), min(35vh, 20vw))` : "clamp(16px, min(45vh, 22vw), 250px)",
                                   }}
@@ -1066,14 +1082,33 @@ export default function TVDisplay({
             const currentItem = activeSignageMedia[activeMediaIndex];
             if (!currentItem) return null;
             return (
-              <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-zinc-950">
+              <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-zinc-950 overflow-hidden">
+                {/* Ambient blur behind to gracefully fill any TV aspect ratio gaps while main image remains 100% full and uncropped */}
+                {currentItem.type === "video" ||
+                currentItem.url.match(/\.(mp4|webm|mov)$/i) ||
+                currentItem.url.startsWith("data:video") ? (
+                  <video
+                    src={currentItem.url}
+                    className="absolute inset-0 w-full h-full object-cover blur-3xl opacity-30 scale-110 pointer-events-none"
+                    muted
+                    playsInline
+                  />
+                ) : (
+                  <img
+                    src={currentItem.url}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                    className="absolute inset-0 w-full h-full object-cover blur-3xl opacity-30 scale-110 pointer-events-none"
+                  />
+                )}
+
                 {currentItem.type === "video" ||
                 currentItem.url.match(/\.(mp4|webm|mov)$/i) ||
                 currentItem.url.startsWith("data:video") ? (
                   <video
                     key={currentItem.id}
                     src={currentItem.url}
-                    className="w-full h-full object-contain bg-black"
+                    className="w-full h-full object-contain relative z-10 tv-media-vivid"
                     autoPlay
                     muted
                     playsInline
@@ -1088,17 +1123,17 @@ export default function TVDisplay({
                     src={currentItem.url}
                     alt={currentItem.title}
                     referrerPolicy="no-referrer"
-                    className="w-full h-full object-contain transition-all"
+                    className="w-full h-full object-contain relative z-10 transition-all tv-media-vivid"
                   />
                 )}
 
-                {/* Floating soft shade gradient overlay mask */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/25 to-black/60 pointer-events-none" />
+                {/* Subtle soft shade gradient overlay mask - keeping media bright, luminous and fresh without cropping or hiding image details */}
+                <div className="absolute inset-0 z-20 bg-gradient-to-t from-black/40 via-transparent to-black/15 pointer-events-none" />
 
                 {/* Slideshow Luxury Bottom Titles and Meta */}
                 <div className="absolute bottom-8 left-8 right-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4 z-10 pointer-events-none">
                   <div className="max-w-2xl">
-                    <p className="text-[11px] text-[#D4AF37] font-poppins tracking-widest leading-relaxed mt-1 uppercase font-bold">
+                    <p className="text-[12px] text-[#FFD700] font-poppins tracking-widest leading-relaxed mt-1 uppercase font-bold drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
                       ✦ Certified Fine Jewelry Exhibition & Swarna Collections ✦
                     </p>
                   </div>
