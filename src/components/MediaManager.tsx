@@ -513,9 +513,9 @@ export default function MediaManager({
                         {/* Thumbnail preview */}
                         <div className="w-24 h-16 rounded overflow-hidden border border-zinc-800 flex-shrink-0 bg-black flex items-center justify-center relative">
                           {newType === 'video' ? (
-                            <video src={newUrl} className="w-full h-full object-cover" muted playsInline />
+                            <video src={newUrl} className="w-full h-full object-contain p-0.5" muted playsInline />
                           ) : (
-                            <img src={newUrl} alt="Thumbnail" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                            <img src={newUrl} alt="Thumbnail" referrerPolicy="no-referrer" className="w-full h-full object-contain p-0.5" />
                           )}
                           <div className="absolute bottom-1 right-1 bg-black/80 px-1 py-0.5 rounded text-[8px] font-mono text-zinc-400">
                             {newType === 'video' ? 'VIDEO' : 'IMAGE'}
@@ -526,7 +526,7 @@ export default function MediaManager({
                           <p className="text-xs font-semibold text-[#D4AF37] truncate leading-tight">{uploadedFileName || 'Source File Active'}</p>
                           <p className="text-[10px] text-zinc-400 font-mono mt-0.5">Asset size: {uploadedFileSize || 'Processing...'}</p>
                           <p className="text-[9px] text-emerald-400 font-mono mt-1 flex items-center gap-1">
-                            <CheckCircle className="w-3 h-3 text-emerald-400" /> Loaded as secure local data vector
+                            <CheckCircle className="w-3 h-3 text-emerald-400" /> Full Image Fit (No Cropping) • Loaded securely
                           </p>
                         </div>
 
@@ -654,12 +654,17 @@ export default function MediaManager({
           {filteredMedia.map((item) => (
             <div key={item.id} className="bg-[#15161A] border border-zinc-800 rounded-md overflow-hidden flex flex-col justify-between hover:border-[#D4AF37]/25 transition-all">
             
-            {/* Asset Image Container */}
+            {/* Asset Image Container - Full uncropped display with soft ambient backdrop */}
             <div className="h-40 bg-[#0B0B0D] relative group overflow-hidden flex items-center justify-center">
+              {item.type === 'video' ? (
+                <video src={item.url} className="absolute inset-0 w-full h-full object-cover blur-md opacity-25 scale-110 pointer-events-none" muted />
+              ) : (
+                <img src={item.url} alt="" referrerPolicy="no-referrer" className="absolute inset-0 w-full h-full object-cover blur-md opacity-25 scale-110 pointer-events-none" />
+              )}
               {item.type === 'video' ? (
                 <video 
                   src={item.url} 
-                  className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500 bg-black"
+                  className="w-full h-full object-contain p-1 relative z-10 opacity-90 group-hover:scale-105 transition-transform duration-500"
                   autoPlay
                   loop
                   muted
@@ -670,10 +675,10 @@ export default function MediaManager({
                   src={item.url} 
                   alt={item.title} 
                   referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-contain p-1 relative z-10 opacity-90 group-hover:scale-105 transition-transform duration-500"
                 />
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0D]/90 via-transparent to-transparent"></div>
+              <div className="absolute inset-0 z-20 bg-gradient-to-t from-[#0B0B0D]/80 via-transparent to-transparent pointer-events-none"></div>
               
               <div className="absolute top-2 left-2 flex items-center gap-1.5">
                 {item.type === 'banner' ? (
@@ -801,7 +806,7 @@ export default function MediaManager({
                 src={previewItem.url} 
                 alt={previewItem.title} 
                 referrerPolicy="no-referrer"
-                className="w-full h-85 max-h-96 object-cover border-b border-[#D4AF37]/10 bg-zinc-950"
+                className="w-full h-85 max-h-96 object-contain border-b border-[#D4AF37]/10 bg-zinc-950 p-2"
               />
             )}
 
