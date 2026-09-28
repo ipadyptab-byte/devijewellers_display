@@ -105,47 +105,66 @@ export default function BackgroundManager({
     const sizeInMB = file.size / (1024 * 1024);
     setUploadedFileSize(sizeInMB.toFixed(2) + ' MB');
 
+    const isImage = file.type.startsWith('image/') || /\.(jpe?g|png|webp|gif|bmp|svg|avif|heic)$/i.test(file.name);
+
     // Convert file to Base64 (with compression for images to avoid Vercel 4.5MB payload limit)
-    if (file.type.startsWith('image/')) {
+    if (isImage) {
       const reader = new FileReader();
       reader.onload = (event) => {
+        const rawResult = event.target?.result as string;
+        if (!rawResult) return;
+
         const img = new Image();
         img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          
-          // Max dimensions (e.g. 1920x1080)
-          const MAX_WIDTH = 1920;
-          const MAX_HEIGHT = 1080;
-          
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height = Math.round((height * MAX_WIDTH) / width);
-              width = MAX_WIDTH;
+          try {
+            const canvas = document.createElement('canvas');
+            let width = img.width || 1920;
+            let height = img.height || 1080;
+            
+            // Max dimensions (e.g. 1920x1080)
+            const MAX_WIDTH = 1920;
+            const MAX_HEIGHT = 1080;
+            
+            if (width > height) {
+              if (width > MAX_WIDTH) {
+                height = Math.round((height * MAX_WIDTH) / width);
+                width = MAX_WIDTH;
+              }
+            } else {
+              if (height > MAX_HEIGHT) {
+                width = Math.round((width * MAX_HEIGHT) / height);
+                height = MAX_HEIGHT;
+              }
             }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width = Math.round((width * MAX_HEIGHT) / height);
-              height = MAX_HEIGHT;
-            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0, width, height);
+            
+            // Compress to JPEG with 0.8 quality
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            setNewUrl(dataUrl);
+            
+            // Update displayed file size after compression approximation
+            const approxSizeMB = (dataUrl.length * (3/4)) / (1024 * 1024);
+            setUploadedFileSize(approxSizeMB.toFixed(2) + ' MB (Optimized)');
+          } catch (e) {
+            console.warn('Canvas optimization fallback to raw:', e);
+            setNewUrl(rawResult);
+            setUploadedFileSize(sizeInMB.toFixed(2) + ' MB');
           }
-          
-          canvas.width = width;
-          canvas.height = height;
-          
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-          
-          // Compress to JPEG with 0.7 quality to keep size well under 1MB
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-          setNewUrl(dataUrl);
-          
-          // Update displayed file size after compression approximation
-          const approxSizeMB = (dataUrl.length * (3/4)) / (1024 * 1024);
-          setUploadedFileSize(approxSizeMB.toFixed(2) + ' MB (Compressed)');
         };
-        img.src = event.target?.result as string;
+        img.onerror = () => {
+          // Fallback to raw base64
+          setNewUrl(rawResult);
+          setUploadedFileSize(sizeInMB.toFixed(2) + ' MB');
+        };
+        img.src = rawResult;
+      };
+      reader.onerror = () => {
+        alert('Failed to read image file. Please choose another image.');
       };
       reader.readAsDataURL(file);
     } else {
@@ -173,9 +192,10 @@ export default function BackgroundManager({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files && e.target.files.length > 0) {
       processFile(e.target.files[0]);
     }
+    e.target.value = '';
   };
 
   const clearUploadedFile = () => {
