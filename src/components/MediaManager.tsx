@@ -92,11 +92,12 @@ export default function MediaManager({
   const processFile = (file: File) => {
     if (!file) return;
 
-    // Detect media type
+    // Detect media type: only change to video if it is video.
+    // If it is an image, preserve 'gallery' if user selected it, otherwise default to 'banner'
     if (file.type.startsWith('video/')) {
       setNewType('video');
     } else {
-      setNewType('banner');
+      setNewType(prev => (prev === 'gallery' ? 'gallery' : 'banner'));
     }
 
     // Auto-fill title if empty
@@ -109,47 +110,67 @@ export default function MediaManager({
     const sizeInMB = file.size / (1024 * 1024);
     setUploadedFileSize(sizeInMB.toFixed(2) + ' MB');
 
-    // Convert file to Base64 (with compression for images to avoid Vercel 4.5MB payload limit)
-    if (file.type.startsWith('image/')) {
+    const isImage = file.type.startsWith('image/') || /\.(jpe?g|png|webp|gif|bmp|svg|avif|heic)$/i.test(file.name);
+
+    // Convert file to Base64 (with canvas compression for images to optimize load speed and payload)
+    if (isImage) {
       const reader = new FileReader();
       reader.onload = (event) => {
+        const rawResult = event.target?.result as string;
+        if (!rawResult) return;
+
         const img = new Image();
         img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          
-          // Max dimensions (e.g. 1920x1080)
-          const MAX_WIDTH = 1920;
-          const MAX_HEIGHT = 1080;
-          
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height = Math.round((height * MAX_WIDTH) / width);
-              width = MAX_WIDTH;
+          try {
+            const canvas = document.createElement('canvas');
+            let width = img.width || 1920;
+            let height = img.height || 1080;
+            
+            // Max dimensions (e.g. 1920x1080)
+            const MAX_WIDTH = 1920;
+            const MAX_HEIGHT = 1080;
+            
+            if (width > height) {
+              if (width > MAX_WIDTH) {
+                height = Math.round((height * MAX_WIDTH) / width);
+                width = MAX_WIDTH;
+              }
+            } else {
+              if (height > MAX_HEIGHT) {
+                width = Math.round((width * MAX_HEIGHT) / height);
+                height = MAX_HEIGHT;
+              }
             }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width = Math.round((width * MAX_HEIGHT) / height);
-              height = MAX_HEIGHT;
-            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0, width, height);
+            
+            // Compress to JPEG with 0.85 quality for crisp luxury gallery display
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+            setNewUrl(dataUrl);
+            
+            // Update displayed file size after compression approximation
+            const approxSizeMB = (dataUrl.length * (3/4)) / (1024 * 1024);
+            setUploadedFileSize(approxSizeMB.toFixed(2) + ' MB (Optimized)');
+          } catch (e) {
+            console.warn('Canvas optimization fallback to raw data:', e);
+            setNewUrl(rawResult);
+            setUploadedFileSize(sizeInMB.toFixed(2) + ' MB');
           }
-          
-          canvas.width = width;
-          canvas.height = height;
-          
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-          
-          // Compress to JPEG with 0.8 quality to keep size well under 1-2MB
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-          setNewUrl(dataUrl);
-          
-          // Update displayed file size after compression approximation
-          const approxSizeMB = (dataUrl.length * (3/4)) / (1024 * 1024);
-          setUploadedFileSize(approxSizeMB.toFixed(2) + ' MB (Compressed)');
         };
-        img.src = event.target?.result as string;
+        img.onerror = () => {
+          // If canvas decoding fails, fallback to raw base64 dataUrl so image is not lost
+          setNewUrl(rawResult);
+          setUploadedFileSize(sizeInMB.toFixed(2) + ' MB');
+        };
+        img.src = rawResult;
+      };
+      reader.onerror = (e) => {
+        console.error('File reading failed:', e);
+        alert('Failed to read selected image file. Please try another image.');
       };
       reader.readAsDataURL(file);
     } else {
@@ -177,9 +198,11 @@ export default function MediaManager({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files && e.target.files.length > 0) {
       processFile(e.target.files[0]);
     }
+    // Reset file input so picking the same file again triggers onChange
+    e.target.value = '';
   };
 
   const clearUploadedFile = () => {
@@ -244,8 +267,13 @@ export default function MediaManager({
         </div>
 
         <button
-          onClick={() => setShowAddForm(true)}
-          className="bg-[#D4AF37] hover:bg-[#F4D03F] text-black font-serif font-bold text-xs py-2 px-4 rounded transition-colors flex items-center gap-2 shadow"
+          onClick={() => {
+            if (filterType === 'gallery' || filterType === 'video' || filterType === 'banner') {
+              setNewType(filterType);
+            }
+            setShowAddForm(true);
+          }}
+          className="bg-[#D4AF37] hover:bg-[#F4D03F] text-black font-serif font-bold text-xs py-2 px-4 rounded transition-colors flex items-center gap-2 shadow cursor-pointer"
         >
           <PlusCircle className="w-4 h-4" /> ADD DIGITAL RESOURCE
         </button>
@@ -303,21 +331,36 @@ export default function MediaManager({
         </button>
       </div>
 
-      {/* FILTER BUTTONS ROW */}
-      <div className="flex gap-2 border-b border-zinc-800 pb-2">
-        {['all', 'banner', 'video', 'gallery'].map((t) => (
-          <button
-            key={t}
-            onClick={() => setFilterType(t)}
-            className={`px-3 py-1.5 rounded-full text-xs font-serif capitalize transition-colors ${
-              filterType === t 
-                ? 'bg-[#D4AF37]/15 border border-[#D4AF37] text-[#D4AF37]' 
-                : 'bg-black/20 border border-zinc-800 text-zinc-400 hover:border-zinc-700'
-            }`}
-          >
-            {t === 'all' ? 'All Screen Loops' : t + 's'}
-          </button>
-        ))}
+      {/* FILTER BUTTONS ROW WITH BADGES */}
+      <div className="flex flex-wrap gap-2 border-b border-zinc-800 pb-2">
+        {[
+          { id: 'all', label: 'All Loops' },
+          { id: 'banner', label: 'Banners' },
+          { id: 'video', label: 'Videos' },
+          { id: 'gallery', label: 'Photo Galleries' },
+        ].map((tab) => {
+          const count = tab.id === 'all' 
+            ? media.filter(m => m.type !== 'background').length 
+            : media.filter(m => m.type === tab.id && m.type !== 'background').length;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setFilterType(tab.id)}
+              className={`px-3 py-1.5 rounded-full text-xs font-serif transition-colors flex items-center gap-2 cursor-pointer ${
+                filterType === tab.id 
+                  ? 'bg-[#D4AF37]/20 border border-[#D4AF37] text-[#FFD700] font-bold shadow-sm' 
+                  : 'bg-black/20 border border-zinc-800 text-zinc-400 hover:border-zinc-700'
+              }`}
+            >
+              <span>{tab.label}</span>
+              <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+                filterType === tab.id ? 'bg-[#FFD700] text-black font-black' : 'bg-zinc-800 text-zinc-400'
+              }`}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* ADD NEW MEDIA DIALOG/FORM */}
@@ -579,9 +622,37 @@ export default function MediaManager({
       )}
 
       {/* MEDIA ASSETS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" id="media-assets-grid">
-        {filteredMedia.map((item) => (
-          <div key={item.id} className="bg-[#15161A] border border-zinc-800 rounded-md overflow-hidden flex flex-col justify-between hover:border-[#D4AF37]/25 transition-all">
+      {filteredMedia.length === 0 ? (
+        <div className="bg-[#15161A] border border-dashed border-zinc-800 rounded-lg p-12 flex flex-col items-center justify-center text-center gap-4">
+          <div className="p-4 bg-zinc-900 rounded-full border border-zinc-800 text-zinc-500">
+            <FileImage className="w-8 h-8 text-[#D4AF37]" />
+          </div>
+          <div>
+            <h3 className="text-base font-serif font-bold text-white">
+              No {filterType === 'all' ? 'Media' : filterType === 'gallery' ? 'Photo Gallery' : filterType === 'video' ? 'Video' : 'Banner'} Items Found
+            </h3>
+            <p className="text-xs text-zinc-400 mt-1 max-w-md">
+              {filterType === 'gallery' 
+                ? 'Upload jewelry collection images or promotional slide photos to showcase in the showroom digital signage loop.' 
+                : 'Upload digital media banners or videos to loop across the showroom displays.'}
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              if (filterType === 'gallery' || filterType === 'video' || filterType === 'banner') {
+                setNewType(filterType);
+              }
+              setShowAddForm(true);
+            }}
+            className="bg-[#D4AF37] hover:bg-[#F4D03F] text-black font-serif font-bold text-xs py-2 px-5 rounded transition-all flex items-center gap-2 cursor-pointer shadow"
+          >
+            <PlusCircle className="w-4 h-4" /> Add {filterType === 'gallery' ? 'Gallery Photo' : 'Resource'} Now
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" id="media-assets-grid">
+          {filteredMedia.map((item) => (
+            <div key={item.id} className="bg-[#15161A] border border-zinc-800 rounded-md overflow-hidden flex flex-col justify-between hover:border-[#D4AF37]/25 transition-all">
             
             {/* Asset Image Container */}
             <div className="h-40 bg-[#0B0B0D] relative group overflow-hidden flex items-center justify-center">
@@ -704,6 +775,7 @@ export default function MediaManager({
           </div>
         ))}
       </div>
+      )}
 
       {/* FULL EXPANDED VIEW DIALOG */}
       {previewItem && (
