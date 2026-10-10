@@ -1,8 +1,49 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { format } from "date-fns";
-import { ratesApi, settingsApi, geminiApi } from "@/lib/api";
-import { Button } from "@/components/ui/button";
+import { ratesApi, settingsApi, geminiApi } from "../lib/api";
 import { JewelleryRates, SaleStatusItem, Branch, SystemConfig } from "../types";
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  size?: "default" | "sm" | "lg" | "icon";
+}
+
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className = "", variant = "default", size = "default", ...props }, ref) => {
+    let variantStyles = "bg-amber-500 hover:bg-amber-600 text-black font-semibold shadow-sm";
+
+    if (variant === "destructive") {
+      variantStyles = "bg-red-600 hover:bg-red-700 text-white font-medium shadow-sm";
+    } else if (variant === "outline") {
+      variantStyles = "border border-zinc-700 bg-transparent hover:bg-zinc-800 text-zinc-200";
+    } else if (variant === "secondary") {
+      variantStyles = "bg-zinc-800 hover:bg-zinc-700 text-zinc-100";
+    } else if (variant === "ghost") {
+      variantStyles = "bg-transparent hover:bg-zinc-800 text-zinc-300 hover:text-white";
+    } else if (variant === "link") {
+      variantStyles = "text-amber-400 underline-offset-4 hover:underline bg-transparent";
+    }
+
+    let sizeStyles = "h-9 px-4 py-2 text-sm";
+    if (size === "sm") {
+      sizeStyles = "h-8 px-3 text-xs";
+    } else if (size === "lg") {
+      sizeStyles = "h-11 px-6 text-base";
+    } else if (size === "icon") {
+      sizeStyles = "h-9 w-9 p-0 flex items-center justify-center";
+    }
+
+    return (
+      <button
+        ref={ref}
+        className={`inline-flex items-center justify-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 disabled:pointer-events-none disabled:opacity-50 cursor-pointer ${variantStyles} ${sizeStyles} ${className}`}
+        {...props}
+      />
+    );
+  }
+);
+Button.displayName = "Button";
 
 export interface SaleStatusProps {
   rates?: JewelleryRates;
