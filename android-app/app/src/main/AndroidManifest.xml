@@ -8,6 +8,8 @@
 
     <application
         android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
@@ -15,6 +17,8 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher_round"
             android:label="Signage Controller"
             android:theme="@style/Theme.DevijewellersSignage">
             <intent-filter>
