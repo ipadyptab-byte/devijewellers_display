@@ -28,18 +28,28 @@ jobs:
       - name: Ensure Android App Icons
         run: |
           if [ ! -f "android-app/app/src/main/res/mipmap-hdpi/ic_launcher.png" ]; then
-            for d in mdpi:48 hdpi:72 xhdpi:96 xxhdpi:144 xxxhdpi:192; do
-              density="${d%%:*}"
-              size="${d##*:}"
-              mkdir -p "android-app/app/src/main/res/mipmap-$density"
-              convert public/appstore.png -resize "${size}x${size}^" -gravity center -extent "${size}x${size}" "android-app/app/src/main/res/mipmap-$density/ic_launcher.png"
-              convert public/appstore.png -resize "${size}x${size}^" -gravity center -extent "${size}x${size}" "android-app/app/src/main/res/mipmap-$density/ic_launcher_round.png"
+            SRC=""
+            for p in "public/appstore.png" "devijewellers_display-main/public/appstore.png" "public/icon.png" "appstore.png"; do
+              if [ -f "$p" ]; then SRC="$p"; break; fi
             done
-            mkdir -p "android-app/app/src/main/res/values"
-            echo '<resources><color name="ic_launcher_background">#B82541</color></resources>' > "android-app/app/src/main/res/values/colors.xml"
-            mkdir -p "android-app/app/src/main/res/mipmap-anydpi-v26"
-            echo '<?xml version="1.0" encoding="utf-8"?><adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><background android:drawable="@color/ic_launcher_background"/><foreground android:drawable="@mipmap/ic_launcher"/></adaptive-icon>' > "android-app/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml"
-            cp "android-app/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" "android-app/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml"
+
+            if [ -n "$SRC" ]; then
+              mkdir -p "android-app/app/src/main/res/drawable"
+              cp "$SRC" "android-app/app/src/main/res/drawable/ic_launcher_foreground.png"
+
+              for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+                mkdir -p "android-app/app/src/main/res/mipmap-$d"
+                cp "$SRC" "android-app/app/src/main/res/mipmap-$d/ic_launcher.png"
+                cp "$SRC" "android-app/app/src/main/res/mipmap-$d/ic_launcher_round.png"
+              done
+
+              mkdir -p "android-app/app/src/main/res/values"
+              echo '<resources><color name="ic_launcher_background">#B82541</color></resources>' > "android-app/app/src/main/res/values/colors.xml"
+
+              mkdir -p "android-app/app/src/main/res/mipmap-anydpi-v26"
+              echo '<?xml version="1.0" encoding="utf-8"?><adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><background android:drawable="@color/ic_launcher_background"/><foreground android:drawable="@drawable/ic_launcher_foreground"/></adaptive-icon>' > "android-app/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml"
+              cp "android-app/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" "android-app/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml"
+            fi
           fi
 
       - name: Build Debug APK
