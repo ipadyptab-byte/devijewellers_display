@@ -1,1261 +1,712 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { ratesApi, settingsApi, geminiApi } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { JewelleryRates, SaleStatusItem, Branch, SystemConfig } from "../types";
 
-import { Capacitor } from '@capacitor/core';
-import { Filesystem, Directory } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
-import React, { useState, useRef, useEffect } from 'react';
-import { SaleStatusItem, Branch, JewelleryRates, SystemConfig } from '../types';
-import { 
-  CheckCircle, 
-  PlusCircle, 
-  X, 
-  MapPin, 
-  Activity, 
-  Tag, 
-  Sparkles, 
-  Download, 
-  Share2, 
-  Printer, 
-  Smartphone, 
-  Palette, 
-  Check, 
-  Layers, 
-  Copy, 
-  Clock, 
-  Send,
-  Building,
-  ToggleLeft,
-  ToggleRight
-} from 'lucide-react';
-
-interface SaleStatusProps {
-  rates: JewelleryRates;
-  saleStatuses: SaleStatusItem[];
-  branches: Branch[];
-  systemConfig: SystemConfig;
-  onUpdateSaleStatuses: (newStatuses: SaleStatusItem[]) => void;
-  onTriggerLog: (action: string, details: string) => void;
+export interface SaleStatusProps {
+  rates?: JewelleryRates;
+  saleStatuses?: SaleStatusItem[];
+  branches?: Branch[];
+  systemConfig?: SystemConfig;
+  onUpdateSaleStatuses?: (newStatuses: SaleStatusItem[]) => void;
+  onTriggerLog?: (action: string, details: string) => void;
 }
 
 export default function SaleStatus({
-  rates,
-  saleStatuses,
-  branches,
-  systemConfig,
-  onUpdateSaleStatuses,
-  onTriggerLog
-}: SaleStatusProps) {
-  
-  // Navigation tabs of Section
-  const [activeSubTab, setActiveSubTab] = useState<'poster_studio' | 'campaign_tags'>('poster_studio');
-
-  // --- TAB 1: POSTER STUDIO CONFIGURATION STATES ---
-  const [activeTheme, setActiveTheme] = useState<'midnight_gold' | 'festival_gold' | 'wedding_gold' | 'premium_black'>('midnight_gold');
-  const [aspectRatio, setAspectRatio] = useState<'1:1' | '4:5' | '9:16'>('1:1');
-  const [selectedBranchIds, setSelectedBranchIds] = useState<string[]>([branches[0]?.id || 'b1']);
-  const [headerTitle, setHeaderTitle] = useState<string>('DAILY RATES');
-  const [greetingText, setGreetingText] = useState<string>('A Legacy of Purity & Timeless Trust');
-  const [show24k, setShow24k] = useState<boolean>(true);
-  const [show22k, setShow22k] = useState<boolean>(true);
-  const [show18k, setShow18k] = useState<boolean>(true);
-  const [showSilver, setShowSilver] = useState<boolean>(true);
-  const [showPlatinum, setShowPlatinum] = useState<boolean>(false);
-  const [customRatesNote, setCustomRatesNote] = useState<string>('* Rates are subject to market fluctuations. Verify at billing desk.');
-  const [currentTime, setCurrentTime] = useState<string>('');
-
-  // Social share dialog states
-  const [showShareModal, setShowShareModal] = useState<boolean>(false);
-  const [sharePlatform, setSharePlatform] = useState<'whatsapp' | 'instagram'>('whatsapp');
-  const [copiedText, setCopiedText] = useState<boolean>(false);
-  const [whatsappMessage, setWhatsappMessage] = useState<string>(() => {
-    const defaultMsg = `👑 *{header}* 👑\n📅 {date}\n━━━━━━━━━━━━━━━━━━━━\n✨ *24K Gold:* ₹{24k}/10g\n🏆 *22K Gold:* ₹{22k}/10g\n⭐ *18K Gold:* ₹{18k}/10g\n🥈 *Silver:* ₹{silver}/1Kg\n━━━━━━━━━━━━━━━━━━━━\n📞 Contact: {contact}`;
-    return localStorage.getItem('whatsappMessage') || defaultMsg;
-  });
-
-  // --- TAB 2: CAMPAIGN STATUS DESK FIELDS ---
-  const [showAddForm, setShowAddForm] = useState<boolean>(false);
-  const [newName, setNewName] = useState<string>('');
-  const [newTag, setNewTag] = useState<'New Collection' | 'Gold Offer' | 'Diamond Offer' | 'Exchange Offer'>('Gold Offer');
-  const [newStatus, setNewStatus] = useState<'active' | 'upcoming' | 'expired'>('active');
-  const [selectedBranches, setSelectedBranches] = useState<string[]>(['all']);
-
-  // Update clock live on load
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setCurrentTime(now.toLocaleString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true
-      }));
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const activeSelectedBranches = branches.filter(b => selectedBranchIds.includes(b.id));
-  const activeBranchName = activeSelectedBranches.length === branches.length 
-    ? 'ALL DEVIJEWELLERS SHOWROOMS' 
-    : (activeSelectedBranches.length > 0 ? activeSelectedBranches.map(b => b.name).join(' | ') : 'DEVIJEWELLERS EXCLUSIVE SHOWROOM');
-  
-  const activeBranchAddress = activeSelectedBranches[0] ? activeSelectedBranches[0].address : '';
-  const activeBranchContact = activeSelectedBranches.length === branches.length
-    ? 'Universal Contact Book'
-    : (activeSelectedBranches.length > 0 ? activeSelectedBranches.map(b => b.contact).filter(Boolean).join(' | ') : '');
-
-  // Currency Formatter
-  const formatINR = (val: number, isSilver = false) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0,
-    }).format(Math.abs(val || 0));
+  rates: initialRatesProp,
+  onTriggerLog,
+}: SaleStatusProps = {}) {
+  // Indian time
+  const getIndianTime = () => {
+    const now = new Date();
+    return new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
   };
 
-  // Generate Social Sharing Text
-  const getShareableText = () => {
-    let text = whatsappMessage;
-    const timeStr = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
-    
-    text = text.replace(/{branch}/g, activeBranchName);
-    text = text.replace(/{date}/g, timeStr);
-    text = text.replace(/{header}/g, headerTitle);
-    
-    // Add rate variables
-    text = text.replace(/{24k}/g, rates.gold24k ? rates.gold24k.toString() : '');
-    text = text.replace(/{22k}/g, rates.gold22k ? rates.gold22k.toString() : '');
-    text = text.replace(/{18k}/g, rates.gold18k ? rates.gold18k.toString() : '');
-    text = text.replace(/{silver}/g, rates.silver ? rates.silver.toString() : '');
-    text = text.replace(/{contact}/g, activeBranchContact);
+  const [currentTime, setCurrentTime] = useState<Date>(getIndianTime());
+  const [imageBlob, setImageBlob] = useState<Blob | null>(null);
+  const [isWorking, setIsWorking] = useState<"idle" | "saving" | "sharing">("idle");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  // Optional directory handle if user selects a folder (File System Access API)
+  const [dirHandle, setDirHandle] = useState<any>(null);
 
-    return text;
-  };
+  // Gemini AI Background states
+  const [aiBgUrl, setAiBgUrl] = useState<string | null>(null);
+  const [aiPromptType, setAiPromptType] = useState<"plain_gold" | "marathi_lady" | "royal_gold" | "custom">("plain_gold");
+  const [customPromptText, setCustomPromptText] = useState<string>("");
+  const [isGeneratingAiBg, setIsGeneratingAiBg] = useState<boolean>(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiNotice, setAiNotice] = useState<string | null>(null);
+  const [aspectRatioMode, setAspectRatioMode] = useState<"whatsapp_status" | "full_screen">("whatsapp_status");
+  const [showAiControls, setShowAiControls] = useState<boolean>(true);
 
-  const copyShareableText = () => {
-    navigator.clipboard.writeText(getShareableText());
-    setCopiedText(true);
-    setTimeout(() => setCopiedText(false), 2000);
-  };
-
-  // HTML CANVAS - PIXEL-PERFECT PNG GENERATION
-  const drawPosterCanvas = async (): Promise<HTMLCanvasElement | null> => {
-    const canvas = document.createElement('canvas');
-    let cWidth = 1200;
-    let cHeight = 1200;
-    if (aspectRatio === '4:5') cHeight = 1500;
-    if (aspectRatio === '9:16') cHeight = 2133;
-    
-    canvas.width = cWidth;
-    canvas.height = cHeight;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
-
-    // Determine colors based on activeTheme
-    let bgColor = '#0B0B0D';
-    let cardBg = '#15161A';
-    let accentColor = '#D4AF37'; // gold
-    let headerText = '#F8F5EE';
-    let textColor = '#FFFFFF';
-    let mutedTextColor = '#9CA3AF';
-    let borderStyle: 'double' | 'solid' | 'ornament' = 'double';
-
-    if (activeTheme === 'midnight_gold') {
-      bgColor = '#0B0B0D';
-      cardBg = '#15161A';
-      accentColor = '#D4AF37';
-      borderStyle = 'double';
-    } else if (activeTheme === 'festival_gold') {
-      bgColor = '#23040A'; // deep wine red
-      cardBg = '#3D0A14';
-      accentColor = '#F4D03F'; // warm champagne gold
-      borderStyle = 'ornament';
-    } else if (activeTheme === 'wedding_gold') {
-      bgColor = '#331005'; // amber chocolate
-      cardBg = '#4F1E0F';
-      accentColor = '#FFD700'; // rich gold
-      borderStyle = 'solid';
-    } else if (activeTheme === 'premium_black') {
-      bgColor = '#000000';
-      cardBg = '#111111';
-      accentColor = '#D4AF37';
-      borderStyle = 'solid';
-    } else if (activeTheme === 'emerald_luxury') {
-      bgColor = '#021C11';
-      cardBg = '#062B1C';
-      accentColor = '#4ADE80';
-      borderStyle = 'solid';
-    } else if (activeTheme === 'royal_sapphire') {
-      bgColor = '#040F2D';
-      cardBg = '#0A1A45';
-      accentColor = '#60A5FA';
-      borderStyle = 'double';
-    }
-
-    // 1. Background Fill
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, cWidth, cHeight);
-
-    // 2. Inner Card Box
-    ctx.fillStyle = cardBg;
-    ctx.fillRect(50, 50, cWidth - 100, cHeight - 100);
-
-    // 3. Border Framing
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = accentColor;
-    if (borderStyle === 'double') {
-      ctx.strokeRect(70, 70, cWidth - 140, cHeight - 140);
-      ctx.lineWidth = 1;
-      ctx.strokeRect(80, 80, cWidth - 160, cHeight - 160);
-    } else if (borderStyle === 'solid') {
-      ctx.strokeRect(60, 60, cWidth - 120, cHeight - 120);
-    } else {
-      ctx.strokeRect(70, 70, cWidth - 140, cHeight - 140);
-      ctx.beginPath();
-      ctx.arc(70, 70, 15, 0, Math.PI * 2);
-      ctx.arc(cWidth - 70, 70, 15, 0, Math.PI * 2);
-      ctx.arc(70, cHeight - 70, 15, 0, Math.PI * 2);
-      ctx.arc(cWidth - 70, cHeight - 70, 15, 0, Math.PI * 2);
-      ctx.fillStyle = accentColor;
-      ctx.fill();
-    }
-
-    // 4. Logo / Top branding
+  const handleGenerateAiBg = async () => {
     try {
-      const logoImg = new Image();
-      logoImg.crossOrigin = "anonymous";
-      logoImg.src = "/logo.png";
-      
-      await new Promise((resolve, reject) => {
-        logoImg.onload = resolve;
-        logoImg.onerror = resolve;
+      setIsGeneratingAiBg(true);
+      setAiError(null);
+      setAiNotice(null);
+      const res = await geminiApi.generateStatusBg({
+        promptType: aiPromptType,
+        customPrompt: customPromptText,
+        aspectRatio: aspectRatioMode === "whatsapp_status" ? "9:16" : "1:1",
       });
 
-      if (logoImg.complete && logoImg.naturalWidth) {
-        const targetHeight = 120;
-        const targetWidth = logoImg.width * (targetHeight / logoImg.height);
-        ctx.drawImage(logoImg, 600 - targetWidth / 2, 110, targetWidth, targetHeight);
-      } else if (!logoImg.complete || !logoImg.naturalWidth) {
-        if (systemConfig.logoText) {
-            ctx.fillStyle = accentColor;
-            ctx.font = "bold 56px 'Poppins', sans-serif";
-            ctx.textAlign = 'center';
-            ctx.letterSpacing = "4px";
-            ctx.fillText(systemConfig.logoText, 600, 180);
+      if (res.imageUrl) {
+        setAiBgUrl(res.imageUrl);
+        if (res.notice) {
+          setAiNotice(res.notice);
         }
-      }
-    } catch(e) {
-       console.log(e);
-    }
-
-    // Custom Header Title
-    ctx.textAlign = 'center';
-    ctx.fillStyle = accentColor;
-    ctx.font = "900 72px 'Playfair Display', serif";
-    ctx.letterSpacing = "6px";
-    ctx.fillText(`${headerTitle || 'BULLION RATES'}`.toUpperCase(), 600, 310);
-
-    // 5. Time Block
-    ctx.textAlign = 'center';
-    ctx.fillStyle = mutedTextColor;
-    ctx.font = "italic 24px 'Poppins', sans-serif";
-    ctx.letterSpacing = "2px";
-    ctx.fillText(`${currentTime ? currentTime.split(',')[0] : new Date().toDateString()}`, 600, 420);
-
-    // Decorative Line Separator
-    ctx.strokeStyle = `${accentColor}60`;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(350, 460);
-    ctx.lineTo(850, 460);
-    ctx.stroke();
-
-    // 8. Rates Table Header Block
-    ctx.fillStyle = `${accentColor}15`;
-    ctx.strokeStyle = `${accentColor}50`;
-    ctx.lineWidth = 2;
-    const hX = 140, hY = 520, hW = 920, hH = 55, hRad = 16;
-    ctx.beginPath();
-    ctx.moveTo(hX + hRad, hY);
-    ctx.lineTo(hX + hW - hRad, hY);
-    ctx.quadraticCurveTo(hX + hW, hY, hX + hW, hY + hRad);
-    ctx.lineTo(hX + hW, hY + hH - hRad);
-    ctx.quadraticCurveTo(hX + hW, hY + hH, hX + hW - hRad, hY + hH);
-    ctx.lineTo(hX + hRad, hY + hH);
-    ctx.quadraticCurveTo(hX, hY + hH, hX, hY + hH - hRad);
-    ctx.lineTo(hX, hY + hRad);
-    ctx.quadraticCurveTo(hX, hY, hX + hRad, hY);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = accentColor;
-    ctx.font = "bold 20px 'Poppins', sans-serif";
-    ctx.textAlign = 'left';
-    ctx.fillText("METAL PURITY CATEGORY", 180, 552);
-    ctx.textAlign = 'right';
-    
-    ctx.fillText("SALE RATE (INR)", 1020, 552);
-
-    // 9. Map eligible items
-    const displayItems: { label: string; sub: string; val: string; }[] = [];
-    if (show24k) displayItems.push({ label: '24K GOLD RATE', sub: '10gm', val: formatINR(rates.gold24k) });
-    if (show22k) displayItems.push({ label: '22K GOLD RATE', sub: '10gm', val: formatINR(rates.gold22k) });
-    if (show18k) displayItems.push({ label: '18K GOLD RATE', sub: '10gm', val: formatINR(rates.gold18k) });
-    if (showSilver) displayItems.push({ label: 'SILVER RATE', sub: '1 kg', val: formatINR(rates.silver) });
-    if (showPlatinum) displayItems.push({ label: 'PLATINUM PT950', sub: '10gm', val: formatINR(rates.platinum) });
-
-    let currentY = aspectRatio === '1:1' ? 610 : aspectRatio === '4:5' ? 700 : 850;
-    let rowIncrement = aspectRatio === '1:1' ? 115 : aspectRatio === '4:5' ? 145 : 215;
-
-    displayItems.forEach((item, index) => {
-      // Draw Box Border
-      const boxHeight = rowIncrement * 0.85; 
-      const boxY = currentY - (rowIncrement * 0.35);
-      const radius = 24;
-      const x = 140;
-      const w = 920;
-      
-      ctx.fillStyle = "rgba(0,0,0,0.2)";
-      ctx.strokeStyle = `${accentColor}60`;
-      ctx.lineWidth = 2;
-      
-      ctx.beginPath();
-      ctx.moveTo(x + radius, boxY);
-      ctx.lineTo(x + w - radius, boxY);
-      ctx.quadraticCurveTo(x + w, boxY, x + w, boxY + radius);
-      ctx.lineTo(x + w, boxY + boxHeight - radius);
-      ctx.quadraticCurveTo(x + w, boxY + boxHeight, x + w - radius, boxY + boxHeight);
-      ctx.lineTo(x + radius, boxY + boxHeight);
-      ctx.quadraticCurveTo(x, boxY + boxHeight, x, boxY + boxHeight - radius);
-      ctx.lineTo(x, boxY + radius);
-      ctx.quadraticCurveTo(x, boxY, x + radius, boxY);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-
-      // Center all text in the box
-      const boxCenterY = boxY + (boxHeight / 2);
-      
-      // Label
-      ctx.fillStyle = textColor;
-      ctx.font = "900 56px 'Playfair Display', serif";
-      ctx.textAlign = 'center';
-      ctx.fillText(item.label, 600, boxCenterY - 30);
-
-      // Sub label
-      ctx.fillStyle = mutedTextColor;
-      ctx.font = "600 28px 'Poppins', sans-serif";
-      ctx.textAlign = 'center';
-      ctx.fillText(item.sub, 600, boxCenterY + 5);
-      
-      // Sale Value column
-      const valGrad = ctx.createLinearGradient(300, 0, 900, 0);
-      valGrad.addColorStop(0, '#FFFFFF');
-      valGrad.addColorStop(1, accentColor);
-      ctx.fillStyle = valGrad;
-      ctx.font = "900 76px 'Playfair Display', serif";
-      ctx.textAlign = 'center';
-      ctx.fillText(item.val, 600, boxCenterY + 70);
-
-      currentY += rowIncrement;
-    });
-
-    // 10. Footer info
-    const footerY = Math.max(1020, currentY + 10);
-    ctx.strokeStyle = `${accentColor}40`;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(150, footerY);
-    ctx.lineTo(1050, footerY);
-    ctx.stroke();
-
-    ctx.fillStyle = accentColor;
-    ctx.font = "16px 'Poppins', sans-serif";
-    ctx.textAlign = 'center';
-    ctx.fillText(`Contact: ${activeBranchContact}`, 600, footerY + 40);
-
-    ctx.fillStyle = mutedTextColor;
-    ctx.font = "italic 15px 'Poppins', sans-serif";
-    ctx.fillText(customRatesNote, 600, footerY + 75);
-
-    return canvas;
-  }
-
-  const [generatedImageFallback, setGeneratedImageFallback] = useState<string | null>(null);
-
-  const drawAndDownloadCanvas = async () => {
-    const canvas = await drawPosterCanvas();
-    if (!canvas) return;
-
-    const base64 = canvas.toDataURL('image/png');
-
-    // Android Native App hook
-    if ((window as any).AndroidNative && (window as any).AndroidNative.downloadImage) {
-      (window as any).AndroidNative.downloadImage(base64, `Devijewellers_Rates_${activeTheme}_${activeBranchName.replace(/\s+/g, '_')}.png`);
-      return;
-    }
-
-    // Try standard web download
-    try {
-      const link = document.createElement('a');
-      link.download = `Devijewellers_Rates_${activeTheme}_${activeBranchName.replace(/\s+/g, '_')}.png`;
-      link.href = base64;
-      link.click();
-      
-      // If it's a mobile device (touch interface), the click() might fail silently in webviews
-      if ('ontouchstart' in window && !navigator.userAgent.includes('Windows')) {
-        setGeneratedImageFallback(base64);
-      }
-    } catch(e) {
-      setGeneratedImageFallback(base64);
-    }
-
-    // Trigger logs
-    const dimText = aspectRatio === '1:1' ? '1200x1200px square' : aspectRatio === '4:5' ? '1200x1500px portrait' : '1200x2133px story format';
-    onTriggerLog(
-      'Export Rate Poster Image', 
-      `Generated and downloaded a ${dimText} digital rate poster in ${activeTheme.toUpperCase()} theme for ${activeBranchName}.`
-    );
-  };
-
-  const sharePoster = async (platform: string) => {
-    const canvas = await drawPosterCanvas();
-    if (!canvas) return;
-
-    const base64data = canvas.toDataURL('image/png');
-
-    canvas.toBlob(async (blob) => {
-      if (!blob) return;
-      const file = new File([blob], `Devijewellers_Rates_${activeTheme}_${activeBranchName.replace(/\s+/g, '_')}.png`, { type: 'image/png' });
-      
-      const interpolatedMessage = whatsappMessage
-        .replace(/{branch}/g, activeBranchName)
-        .replace(/{date}/g, new Date().toDateString());
-
-      // When sharing an image directly to WhatsApp or Instagram, sending text alongside 
-      // the file array often forces Android to attach system-level meta titles or URLs.
-      // To strictly share ONLY the image file, we omit the text and title fields.
-      // On browsers, we might want to include the text, but on Android, 
-      // providing only the file ensures no link/text previews mess up the image share.
-      const shareData: ShareData = {
-        files: [file]
-      };
-      
-      // User specifically requested to share ONLY the image, no text in any environment
-      // We will leave shareData.text undefined
-
-      try {
-        // Capacitor Native Share Handling
-        if (Capacitor.isNativePlatform()) {
-          try {
-            const base64DataRaw = base64data.split(',')[1];
-            const fileName = `Devijewellers_Rates_${activeTheme}_${Date.now()}.png`;
-            
-            const savedFile = await Filesystem.writeFile({
-              path: fileName,
-              data: base64DataRaw,
-              directory: Directory.Cache
-            });
-            
-            await Share.share({
-              url: savedFile.uri,
-              dialogTitle: platform === 'whatsapp' ? 'Share to WhatsApp' : 'Share to Instagram'
-            });
-            
-            onTriggerLog('Share Rate Poster', `Successfully requested Capacitor Share for ${platform} - Branch: ${activeBranchName}.`);
-            return;
-          } catch (capErr: any) {
-            console.error("Capacitor share failed:", capErr);
-            // Fall through to fallback
-          }
-        }
-
-        // Android WebView Native share intercept
-        if ((window as any).AndroidNative && (window as any).AndroidNative.shareImage) {
-          const targetPkg = platform === 'whatsapp' ? 'com.whatsapp' : (platform === 'instagram' ? 'com.instagram.android' : '');
-          (window as any).AndroidNative.shareImage(base64data, "", "", targetPkg);
-          onTriggerLog('Share Rate Poster', `Native Android App Share triggered for ${platform} - Branch: ${activeBranchName}.`);
-          return;
-        }
-
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share(shareData);
-          onTriggerLog('Share Rate Poster', `Successfully requested OS Native Share for ${platform} - Branch: ${activeBranchName}.`);
-        } else {
-          // Fallback if can't share native
-          setGeneratedImageFallback(base64data);
-        }
-      } catch (err: any) {
-        console.error("Error sharing poster:", err);
-        alert("Native share failed: " + (err.message || err.name || err.toString()));
-        setGeneratedImageFallback(base64data);
-      }
-    }, 'image/png');
-  };
-
-  const triggerPrintWindow = () => {
-    // If in Android Webview, hide or disable print
-    if ((window as any).AndroidNative) return;
-    onTriggerLog('Print Rate Poster', `Initiated printing job for branch: ${activeBranchName} rate card.`);
-    window.print();
-  };
-
-  // --- TAB 2: REGISTER STOCK CAMPAIGNS & OFFERS ---
-  const handleBranchSelect = (branchId: string) => {
-    if (branchId === 'all') {
-      setSelectedBranches(['all']);
-    } else {
-      let filtered = selectedBranches.filter(b => b !== 'all');
-      if (filtered.includes(branchId)) {
-        filtered = filtered.filter(b => b !== branchId);
-        if (filtered.length === 0) filtered = ['all'];
+        onTriggerLog?.("AI_STATUS_BG", `Generated AI background with theme: ${aiPromptType}`);
       } else {
-        filtered.push(branchId);
+        setAiError(res.error || "Could not generate AI background.");
       }
-      setSelectedBranches(filtered);
+    } catch (err: any) {
+      console.error("AI Generation failed:", err);
+      setAiError(err?.message || "Failed to call Gemini AI image API.");
+    } finally {
+      setIsGeneratingAiBg(false);
     }
   };
 
-  const toggleStatusState = (id: string) => {
-    const updated = saleStatuses.map(s => {
-      if (s.id === id) {
-        const nextStatus = s.status === 'active' ? 'expired' : 'active';
-        onTriggerLog('Offer Status Toggled', `Switched seasonal target label "${s.name}" to ${nextStatus.toUpperCase()}.`);
-        return { ...s, status: nextStatus as any };
+  const isIOS = useMemo(() => {
+    if (typeof navigator === "undefined") return false;
+    return /iPad|iPhone|iPod/.test(navigator.userAgent);
+  }, []);
+
+  // Try modern file picker (lets user choose exact save location and filename)
+  const saveWithPicker = async (blob: Blob, suggestedName: string) => {
+    try {
+      const win = window as any;
+      if (win?.showSaveFilePicker) {
+        const handle = await win.showSaveFilePicker({
+          suggestedName,
+          types: [{ description: "PNG Image", accept: { "image/png": [".png"] } }],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return true;
       }
-      return s;
-    });
-    onUpdateSaleStatuses(updated);
-  };
-
-  const deleteStatus = (id: string) => {
-    const target = saleStatuses.find(s => s.id === id);
-    if (target) {
-      onTriggerLog('Offer Status Removed', `Archived promotional offer listing: "${target.name}"`);
+      return false;
+    } catch {
+      return false;
     }
-    const updated = saleStatuses.filter(s => s.id !== id);
-    onUpdateSaleStatuses(updated);
   };
 
-  const submitNewOffer = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newName) return;
+  // Let user choose a folder and remember it (for capable browsers)
+  const chooseFolder = async () => {
+    try {
+      const win = window as any;
+      if (win?.showDirectoryPicker) {
+        const handle = await win.showDirectoryPicker();
+        setDirHandle(handle);
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  };
 
-    const newItem: SaleStatusItem = {
-      id: 's_' + Date.now(),
-      name: newName,
-      tag: newTag,
-      status: newStatus,
-      branches: selectedBranches
+  // Save directly into a chosen folder (File System Access API)
+  const saveToChosenFolder = async (blob: Blob, filename: string) => {
+    try {
+      if (!dirHandle) return false;
+      const hasPerm = (await dirHandle.queryPermission?.({ mode: "readwrite" })) === "granted"
+        || (await dirHandle.requestPermission?.({ mode: "readwrite" })) === "granted";
+      if (!hasPerm) return false;
+      const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const FILENAME = `dj_daily_rate-${format(getIndianTime(), "yyyyMMdd")}.png`;
+
+  // Download from preview overlay (picker/folder if possible, else anchor/dataUrl)
+  const handleDownloadFromPreview = async () => {
+    try {
+      if (!imageBlob && !previewUrl) return;
+      const blob = imageBlob || (await (await fetch(previewUrl as string)).blob());
+      // Prefer picker, then chosen folder, then anchor/dataUrl via saveBlobToGallery fallbacks
+      if (await saveWithPicker(blob, FILENAME)) {
+        setPreviewUrl(null);
+        return;
+      }
+      if (await saveToChosenFolder(blob, FILENAME)) {
+        setPreviewUrl(null);
+        return;
+      }
+      await saveBlobToGallery(blob, FILENAME, previewUrl || undefined);
+      setPreviewUrl(null);
+    } catch {
+      // ignore; overlay remains
+    }
+  };
+
+  const captureRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(getIndianTime()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const { data: currentRates } = useQuery({
+    queryKey: ["/api/rates/current"],
+    queryFn: ratesApi.getCurrent,
+    initialData: initialRatesProp
+      ? {
+          gold_24k_sale: initialRatesProp.gold24k,
+          gold_22k_sale: initialRatesProp.gold22k,
+          gold_18k_sale: initialRatesProp.gold18k,
+          silver_per_kg_sale: initialRatesProp.silver,
+        }
+      : undefined,
+    refetchInterval: 30000,
+  });
+
+  const { data: settings } = useQuery({
+    queryKey: ["/api/settings/display"],
+    queryFn: settingsApi.getDisplay,
+    refetchInterval: 30000,
+  });
+
+  const theme = useMemo(() => {
+    return {
+      background: settings?.background_color || "#FFF8E1",
+      text: settings?.text_color || "#212529",
     };
+  }, [settings]);
 
-    onUpdateSaleStatuses([newItem, ...saleStatuses]);
-    onTriggerLog('Offer Status Created', `Registered new showroom status loop: "${newName}" mapped to tag [${newTag}].`);
+  // Generate PNG from the on-screen node to preserve computed layout
+  const generateImage = async (): Promise<{ blob: Blob; url: string; dataUrl: string } | null> => {
+    if (!captureRef.current) return null;
 
-    // Reset Form
-    setNewName('');
-    setSelectedBranches(['all']);
-    setShowAddForm(false);
+    const node = captureRef.current;
+
+    const { toPng } = await import("html-to-image");
+
+    // Use actual rendered size to avoid blank outputs on some Android browsers
+    const rect = node.getBoundingClientRect();
+    const width = Math.max(1, Math.ceil(rect.width));
+    const height = Math.max(1, Math.ceil(rect.height));
+
+    const options: any = {
+      cacheBust: true,
+      pixelRatio: 2,
+      skipFonts: true,
+      fontEmbedCSS: "",
+      backgroundColor: theme.background,
+      width,
+      height,
+      style: {
+        transform: "none",
+      },
+      // Exclude footer (buttons), AI control panel, and preview overlay from the captured image
+      filter: (n: HTMLElement) =>
+        !n.closest?.("#action-footer") &&
+        !n.closest?.("#preview-overlay") &&
+        !n.closest?.("#ai-control-panel"),
+    };
+    // Explicitly specify canvas dimensions for some WebViews
+    options.canvasWidth = width * 2;
+    options.canvasHeight = height * 2;
+
+    const dataUrl = await toPng(node, options);
+
+    // Convert data URL to Blob for saving/sharing
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    setImageBlob(blob);
+    setPreviewUrl(dataUrl);
+    return { blob, url, dataUrl };
   };
 
-  // Theme card colors for rendering html preview card live
-  const getHtmlThemeStyles = () => {
-    switch (activeTheme) {
-      case 'midnight_gold':
-        return {
-          wrapper: 'bg-[#0B0B0D] border-double border-4 border-[#D4AF37]/50',
-          card: 'bg-[#15161A] border border-[#D4AF37]/20 text-[#F8F5EE]',
-          accent: 'text-[#D4AF37]',
-          divider: 'border-[#D4AF37]/35',
-          tableHeader: 'bg-[#D4AF37]/10 text-[#D4AF37] border-[#D4AF37]/30',
-          priceText: 'text-[#D4AF37] font-bold font-serif',
-        };
-      case 'festival_gold':
-        return {
-          wrapper: 'bg-gradient-to-br from-[#23040A] to-[#120005] border-4 border-[#F4D03F]/60 rounded-lg shadow-[0_0_25px_rgba(244,208,63,0.15)]',
-          card: 'bg-[#3D0A14] border border-[#F4D03F]/30 text-[#FFFBF0]',
-          accent: 'text-[#F4D03F]',
-          divider: 'border-[#F4D03F]/30',
-          tableHeader: 'bg-[#F4D03F]/15 text-[#F4D03F] border-[#F4D03F]/25',
-          priceText: 'text-[#FFF] font-black tracking-tight font-serif',
-        };
-      case 'wedding_gold':
-        return {
-          wrapper: 'bg-gradient-to-br from-[#330C00] to-[#1D0500] border-4 border-[#FFD700]/70 rounded-lg',
-          card: 'bg-[#4F1E0F]/90 border border-[#FFD700]/20 text-white',
-          accent: 'text-[#FFD700]',
-          divider: 'border-[#FFD700]/20',
-          tableHeader: 'bg-[#FFD700]/10 text-[#FFD700] border-[#FFD700]/20',
-          priceText: 'text-[#FFD700] font-bold font-serif',
-        };
-      case 'premium_black':
-        return {
-          wrapper: 'bg-black border-4 border-[#D4AF37]/45 rounded-lg',
-          card: 'bg-[#111111]/95 border border-zinc-850 text-zinc-100',
-          accent: 'text-zinc-100',
-          divider: 'border-zinc-800',
-          tableHeader: 'bg-[#111111] text-[#D4AF37] border-zinc-800',
-          priceText: 'text-white font-extrabold font-serif',
-        };
+  // Save/share image across Android/iOS browsers and in-app WebViews
+  const saveBlobToGallery = async (blob: Blob, filename: string, dataUrl?: string) => {
+    try {
+      const file = new File([blob], filename, { type: "image/png" });
+
+      // 1) Prefer native share with files where supported
+      const nav = navigator as any;
+      if (nav?.canShare && nav.canShare({ files: [file] })) {
+        await nav.share({ files: [file], title: "Today's Sale Rates" });
+        return;
+      }
+
+      // 2) iOS Safari: download attribute is ignored; navigate to data URL so user can save
+      if (isIOS && dataUrl) {
+        try {
+          window.location.href = dataUrl;
+          return;
+        } catch {}
+      }
+
+      // 3) Anchor download for full browsers (mostly Android)
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      if ("download" in a && !isIOS) {
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(blobUrl);
+        return;
+      }
+
+      // 4) New tab with image (long-press to save)
+      const newTab = window.open();
+      if (newTab) {
+        newTab.document.title = filename;
+        const img = newTab.document.createElement("img");
+        img.src = dataUrl || blobUrl;
+        img.style.width = "100%";
+        img.style.height = "auto";
+        img.style.display = "block";
+        newTab.document.body.style.margin = "0";
+        newTab.document.body.appendChild(img);
+        return;
+      }
+
+      // 5) Last resort: force navigation to data URL derived from blob
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        try {
+          window.location.href = reader.result as string;
+        } catch {
+          // show inline preview overlay
+          setPreviewUrl((reader.result as string) || dataUrl || blobUrl);
+        }
+      };
+      reader.readAsDataURL(blob);
+
+      // Also show inline preview overlay as a UX fallback
+      setPreviewUrl(dataUrl || blobUrl);
+    } catch (err) {
+      console.error("Save image failed", err);
+      // Inline preview overlay so users can long-press save in restrictive envs
+      try {
+        const blobUrl = URL.createObjectURL(blob);
+        setPreviewUrl(dataUrl || blobUrl);
+      } catch {
+        // ignore
+      }
     }
   };
 
-  const previewStyles = getHtmlThemeStyles();
+  const handleSaveImage = async () => {
+    try {
+      setIsWorking("saving");
+      const generated = await generateImage();
+      if (!generated) throw new Error("Failed to render image");
+      await saveBlobToGallery(generated.blob, FILENAME, generated.dataUrl);
+      onTriggerLog?.("STATUS_POSTER_DOWNLOAD", "Saved WhatsApp status image to device");
+    } catch (e) {
+      console.error("Failed to save image", e);
+      // No alert; a preview overlay will appear in restrictive WebViews to allow long-press save
+    } finally {
+      setIsWorking("idle");
+    }
+  };
 
-  return (
-    <div id="sale-status-desktop-root" className="flex flex-col gap-6 text-[#F1ECE4]">
-      
-      {/* ELITE PAGE BAR WITH INNER NAVIGATION */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#15161A] p-5 rounded-md border border-[#D4AF37]/20 shadow-lg">
-        <div>
-          <h2 className="text-xl font-serif font-black gold-gradient flex items-center gap-2 uppercase tracking-widest">
-            <Activity className="w-5 h-5 text-[#D4AF37]" strokeWidth={2.5} /> Showroom Graphics & Tags
-          </h2>
-          <p className="text-xs text-zinc-400 mt-1">
-            Instantly render downloadable digital rate posters for social networks or publish seasonal branch tag lists.
-          </p>
-        </div>
+  const handleShareWhatsApp = async () => {
+    try {
+      setIsWorking("sharing");
+      const generated = await generateImage();
+      if (!generated) throw new Error("Failed to render image for sharing");
+      const { blob, dataUrl } = generated;
 
-        {/* Dynamic Dual Tab Selector */}
-        <div className="flex bg-[#0B0B0D] p-1 rounded-lg border border-zinc-800 shrink-0">
-          <button
-            onClick={() => setActiveSubTab('poster_studio')}
-            className={`px-4 py-2 text-xs font-serif font-bold tracking-wider uppercase rounded transition-all ${
-              activeSubTab === 'poster_studio' 
-                ? 'bg-[#D4AF37] text-black shadow-md' 
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            ⚜️ Elite Poster Studio
-          </button>
-          <button
-            onClick={() => setActiveSubTab('campaign_tags')}
-            className={`px-4 py-2 text-xs font-serif font-bold tracking-wider uppercase rounded transition-all ${
-              activeSubTab === 'campaign_tags'
-                ? 'bg-[#D4AF37] text-black shadow-md'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            🏷️ Campaign Stock Highlighters
-          </button>
+      const file = new File([blob], FILENAME, { type: "image/png" });
+      onTriggerLog?.("WHATSAPP_SHARE", "Initiated WhatsApp status share flow");
+
+      // 1) Try full Web Share with files (Android Chrome/Edge/Samsung, modern iOS)
+      const nav = navigator as any;
+      if (nav?.canShare && nav.canShare({ files: [file] })) {
+        await nav.share({ files: [file], title: "Today's Sale Rates" });
+        return;
+      }
+
+      // 2) Try basic Web Share with text/url (older Safari/Android)
+      if (nav?.share) {
+        // Some browsers cannot share files but can share text/url
+        // We include a short caption and instruct to save from preview if needed
+        await nav.share({
+          title: "Today's Sale Rates",
+          text: "Today's sale rates from Devi Jewellers. If the image didn't attach, long-press the preview to save first.",
+        });
+        // Also show preview to allow user to save image if file-sharing wasn't supported
+        setPreviewUrl(dataUrl);
+        return;
+      }
+
+      // 3) WhatsApp web deep-link fallback (cannot attach image programmatically)
+      const message = "Today's sale rates from Devi Jewellers. Please see the attached image.";
+      const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      window.open(waUrl, "_blank");
+
+      // Show preview so user can long-press/save and attach in WhatsApp
+      setPreviewUrl(dataUrl);
+    } catch (e) {
+      console.error("Share failed", e);
+      // Show preview so user can save manually
+      try {
+        setPreviewUrl((await generateImage())?.dataUrl || null);
+      } catch {
+        // ignore
+      }
+    } finally {
+      setIsWorking("idle");
+    }
+  };
+
+  if (!currentRates) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
+        <div className="text-center">
+          <div className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-zinc-300 font-serif">Loading current rates...</p>
         </div>
       </div>
+    );
+  }
 
-      {activeSubTab === 'poster_studio' ? (
-        /* --- VIEW 1: ELITE POSTER STUDIO --- */
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6" id="poster-studio-arena">
-          
-          {/* CONFIGURATION SIDEBAR: LEFT (5 COLS) */}
-          <div className="lg:col-span-5 flex flex-col gap-5">
-            
-            <div className="bg-[#15161A] border border-[#D4AF37]/20 p-5 rounded-md flex flex-col gap-4">
-              <h3 className="font-serif text-sm font-semibold text-[#D4AF37] border-b border-zinc-800/80 pb-2.5 flex items-center gap-2 uppercase tracking-wider">
-                <Palette className="w-4 h-4 text-[#D4AF37]" /> Poster Configuration
-              </h3>
+  return (
+    <div className="h-full w-full bg-gray-900 text-white flex flex-col items-center justify-between overflow-y-auto">
+      {/* Top AI Control Panel */}
+      <div id="ai-control-panel" className="w-full max-w-2xl bg-gray-800/95 border-b border-gold-500/30 p-2 sm:p-3 shadow-lg shrink-0 sticky top-0 z-40 backdrop-blur-md">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <span className="bg-gradient-to-r from-amber-400 to-gold-500 text-black text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+              <i className="fas fa-wand-magic-sparkles"></i> Gemini AI
+            </span>
+            <h3 className="text-xs sm:text-sm font-bold text-gold-200">AI Status Background</h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setAspectRatioMode(prev => prev === "whatsapp_status" ? "full_screen" : "whatsapp_status")}
+              className="text-[11px] h-7 px-2 border-gold-500/40 bg-gray-700/60 hover:bg-gray-700 text-gold-200 cursor-pointer"
+              title="Toggle WhatsApp Status Aspect Ratio Fit"
+            >
+              <i className={`fas ${aspectRatioMode === "whatsapp_status" ? "fa-mobile-screen" : "fa-expand"} mr-1 text-gold-400`}></i>
+              {aspectRatioMode === "whatsapp_status" ? "9:16 WhatsApp Fit" : "Full Screen"}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setShowAiControls(!showAiControls)}
+              className="text-xs h-7 px-2 text-gray-400 hover:text-white cursor-pointer"
+            >
+              <i className={`fas ${showAiControls ? "fa-chevron-up" : "fa-chevron-down"}`}></i>
+            </Button>
+          </div>
+        </div>
 
-              {/* Theme selectors */}
-              <div className={`flex flex-col $gap-2 transition-all duration-500`}>
-                <label className="text-[10px] font-mono uppercase tracking-widest text-[#D4AF37] font-semibold">Select Canvas Theme Style</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { id: 'midnight_gold', label: 'Midnight Gold', class: 'bg-[#0B0B0D] border-double border-2 border-[#D4AF37]' },
-                    { id: 'festival_gold', label: 'Festival Saffron', class: 'bg-[#23040A] border border-[#F4D03F] text-amber-300' },
-                    { id: 'wedding_gold', label: 'Wedding Maroon', class: 'bg-[#331005] border border-orange-500 text-orange-200' },
-                    { id: 'premium_black', label: 'Premium Black', class: 'bg-black border border-zinc-700 text-white' }
-                  ].map((x) => (
-                    <button
-                      key={x.id}
-                      onClick={() => setActiveTheme(x.id as any)}
-                      className={`p-3 rounded text-left relative flex flex-col justify-end min-h-[55px] cursor-pointer hover:scale-[1.02] transition-all overflow-hidden ${x.class} ${
-                        activeTheme === x.id ? 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-black' : 'opacity-85'
-                      }`}
-                    >
-                      <span className="text-[11px] font-serif font-black tracking-wider uppercase leading-none">{x.label}</span>
-                      {activeTheme === x.id && (
-                        <span className="absolute top-1.5 right-1.5 p-0.5 bg-emerald-500 text-black rounded-full">
-                          <Check className="w-3 h-3" />
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
+        {showAiControls && (
+          <div className="space-y-2 text-xs">
+            {/* Theme selector */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+              <button
+                type="button"
+                onClick={() => setAiPromptType("plain_gold")}
+                className={`px-2 py-1.5 rounded-lg border text-left transition-all flex items-center gap-1.5 cursor-pointer ${
+                  aiPromptType === "plain_gold"
+                    ? "bg-amber-500/20 border-gold-400 text-amber-200 font-bold"
+                    : "bg-gray-700/40 border-gray-600 text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                <span>🌟</span>
+                <span className="truncate">Plain Gold</span>
+              </button>
 
-              {/* Aspect Ratio selector */}
-              <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-mono uppercase tracking-widest text-[#D4AF37] font-semibold">Select Aspect Ratio</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: '1:1', label: 'Square (1:1)' },
-                    { id: '4:5', label: 'Portrait (4:5)' },
-                    { id: '9:16', label: 'Story (9:16)' }
-                  ].map((x) => (
-                    <button
-                      key={x.id}
-                      onClick={() => setAspectRatio(x.id as any)}
-                      className={`p-2 rounded text-center border font-mono transition-all overflow-hidden ${
-                        aspectRatio === x.id 
-                          ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]' 
-                          : 'border-zinc-800 bg-[#0B0B0D] text-zinc-500 hover:border-zinc-600'
-                      }`}
-                    >
-                      <span className="text-[10px] tracking-widest uppercase font-bold">{x.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={() => setAiPromptType("marathi_lady")}
+                className={`px-2 py-1.5 rounded-lg border text-left transition-all flex items-center gap-1.5 cursor-pointer ${
+                  aiPromptType === "marathi_lady"
+                    ? "bg-amber-500/20 border-gold-400 text-amber-200 font-bold"
+                    : "bg-gray-700/40 border-gray-600 text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                <span>💃</span>
+                <span className="truncate">Marathi Lady</span>
+              </button>
 
+              <button
+                type="button"
+                onClick={() => setAiPromptType("royal_gold")}
+                className={`px-2 py-1.5 rounded-lg border text-left transition-all flex items-center gap-1.5 cursor-pointer ${
+                  aiPromptType === "royal_gold"
+                    ? "bg-amber-500/20 border-gold-400 text-amber-200 font-bold"
+                    : "bg-gray-700/40 border-gray-600 text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                <span>🏛️</span>
+                <span className="truncate">Royal Palace</span>
+              </button>
 
+              <button
+                type="button"
+                onClick={() => setAiPromptType("custom")}
+                className={`px-2 py-1.5 rounded-lg border text-left transition-all flex items-center gap-1.5 cursor-pointer ${
+                  aiPromptType === "custom"
+                    ? "bg-amber-500/20 border-gold-400 text-amber-200 font-bold"
+                    : "bg-gray-700/40 border-gray-600 text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                <span>🎨</span>
+                <span className="truncate">Custom Prompt</span>
+              </button>
+            </div>
 
-              {/* Notes Disclaimer text */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Footer Disclaimer note</label>
+            {/* Custom prompt text area */}
+            {aiPromptType === "custom" && (
+              <div>
                 <input
                   type="text"
-                  value={customRatesNote}
-                  onChange={(e) => setCustomRatesNote(e.target.value)}
-                  className="bg-[#0B0B0D] border border-zinc-800 text-[10px] p-2 rounded text-zinc-400 focus:outline-none"
+                  placeholder="e.g., Maharashtrian bride with gold thushi & nath..."
+                  value={customPromptText}
+                  onChange={(e) => setCustomPromptText(e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-gold-400"
                 />
-              </div>
-
-
-
-            </div>
-
-            {/* ACTION TRIGGERS DRAWER */}
-            <div className="bg-[#15161A] border border-zinc-800 p-4 rounded-md flex flex-col gap-2.5">
-              <h4 className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 mb-1">Production Desk Exports</h4>
-              
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={drawAndDownloadCanvas}
-                  className="bg-gradient-to-r from-[#D4AF37] to-[#F4D03F] text-black font-serif font-black text-xs py-2.5 px-3 rounded hover:scale-[1.02] transition-all flex items-center justify-center gap-1.5 shadow"
-                  title="Generate high-quality PNG mockup card"
-                >
-                  <Download className="w-4 h-4" /> DOWNLOAD PNG
-                </button>
-
-                <button
-                  onClick={triggerPrintWindow}
-                  className="border border-[#D4AF37]/50 hover:border-[#D4AF37] text-white font-serif font-medium text-xs py-2.5 px-3 rounded transition-colors flex items-center justify-center gap-1.5"
-                >
-                  <Printer className="w-4 h-4 text-[#D4AF37]" /> PRINT POSTER
-                </button>
-              </div>
-
-              <div className="mt-1">
-                <button
-                  onClick={() => sharePoster('whatsapp')}
-                  className="w-full bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/30 font-medium text-xs py-2 px-3 rounded hover:bg-[#25D366]/20 transition-all flex items-center justify-center gap-1.5 shadow-lg"
-                >
-                  <Share2 className="w-4 h-4" /> DIRECT SHARE TO WHATSAPP
-                </button>
-              </div>
-            </div>
-
-          </div>
-
-          {/* DYNAMIC HIGH-FIDELITY LIVE PREVIEW: RIGHT (7 COLS) */}
-          <div className="lg:col-span-7 flex flex-col justify-start items-center">
-            
-            {/* Visual Header Stage info */}
-            <div className="w-full flex justify-between items-center px-2 mb-2 font-mono text-[10px] text-zinc-500">
-              <span className="flex items-center gap-1">
-                <Layers className="w-3 h-3 text-[#D4AF37]" /> 
-                LIVE PREVIEW ({aspectRatio} ASPECT RATIO)
-              </span>
-              <span>1200 x {aspectRatio === '1:1' ? '1200' : aspectRatio === '4:5' ? '1500' : '2133'} PX CANVAS</span>
-            </div>
-
-            {/* LIVE POSTER FRAME RENDERING IN HIGH ACCURACY */}
-            <div 
-              className={`w-full max-w-[550px] ${aspectRatio === '1:1' ? 'aspect-square' : aspectRatio === '4:5' ? 'aspect-[4/5]' : 'aspect-[9/16]'} rounded-xl p-6 md:p-8 flex flex-col justify-between shadow-2xl relative overflow-hidden transition-all duration-500 ${previewStyles.wrapper}`}
-              id="live-poster-visual-frame"
-            >
-              {/* Corner decorative circles of theme for premium looks */}
-              <div className="absolute top-3 left-3 w-2.5 h-2.5 rounded-full bg-[#D4AF37]/50"></div>
-              <div className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-[#D4AF37]/50"></div>
-              <div className="absolute bottom-3 left-3 w-2.5 h-2.5 rounded-full bg-[#D4AF37]/50"></div>
-              <div className="absolute bottom-3 right-3 w-2.5 h-2.5 rounded-full bg-[#D4AF37]/50"></div>
-
-              {/* INNER BOX OVERLAY FOR CONTRAST */}
-              <div className={`w-full h-full rounded-lg p-5 flex flex-col justify-between border ${previewStyles.card}`}>
-                
-                {/* Branding Brand Banner */}
-                <div className="text-center flex flex-col items-center justify-center">
-                  <img src="/logo.png" alt="Devijewellers Logo" className="h-[90px] object-contain mb-3" />
-                  
-                  {/* Subtitle location details */}
-                  <h1 className="text-xl md:text-2xl font-serif font-black tracking-widest uppercase leading-snug gold-gradient hidden">
-                    {headerTitle || 'BULLION RATES'}
-                  </h1>
-                  
-                  <p className="text-[9px] text-zinc-500 font-mono italic mt-0.5 mb-2">
-                    Timestamp: {currentTime || new Date().toLocaleString()}
-                  </p>
-                  <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/60 to-transparent mx-auto"></div>
-                </div>
-
-                {/* Grid holding the rate rows */}
-                <div className="flex flex-col gap-2.5 my-2">
-                  
-
-                  <div className={`flex flex-col ${aspectRatio === '1:1' ? 'gap-2' : aspectRatio === '4:5' ? 'gap-5' : 'gap-8'}`}>
-                    {show24k && (
-                      <div className={`flex flex-col justify-center items-center text-center p-3 md:p-4 border rounded-xl bg-black/20 ${previewStyles.divider} text-xs gap-1 md:gap-2`}>
-                        <div className="flex flex-col items-center">
-                          <p className="font-serif font-black text-white text-[32px] md:text-[36px] tracking-wider flex items-center gap-1">24K Gold Rate <Sparkles className="w-4 h-4 text-[#D4AF37]" /></p>
-                          <p className="text-[18px] text-[#D4AF37] font-bold uppercase font-mono mt-0.5">10gm</p>
-                        </div>
-                        <span className={`text-[36px] md:text-[46px] font-black tracking-tight ${previewStyles.priceText}`}>
-                          {formatINR(rates.gold24k)}
-                        </span>
-                      </div>
-                    )}
-
-                    {show22k && (
-                      <div className={`flex flex-col justify-center items-center text-center p-3 md:p-4 border rounded-xl bg-black/20 ${previewStyles.divider} text-xs gap-1 md:gap-2`}>
-                        <div className="flex flex-col items-center">
-                          <p className="font-serif font-black text-white text-[32px] md:text-[38px] tracking-wider">22K Gold Rate</p>
-                          <p className="text-[18px] text-zinc-300 font-bold uppercase font-mono mt-0.5">10gm</p>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <span className={`text-[36px] md:text-[46px] font-black tracking-tight ${previewStyles.priceText}`}>
-                            {formatINR(rates.gold22k)}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
-                    {show18k && (
-                      <div className={`flex flex-col justify-center items-center text-center p-3 md:p-4 border rounded-xl bg-black/20 ${previewStyles.divider} text-xs gap-1 md:gap-2`}>
-                        <div className="flex flex-col items-center">
-                          <p className="font-serif font-black text-white text-[32px] md:text-[38px] tracking-wider">18K Gold Rate</p>
-                          <p className="text-[18px] text-zinc-300 font-bold uppercase font-mono mt-0.5">10gm</p>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <span className={`text-[36px] md:text-[46px] font-black tracking-tight ${previewStyles.priceText}`}>
-                            {formatINR(rates.gold18k)}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
-                    {showSilver && (
-                      <div className={`flex flex-col justify-center items-center text-center p-3 md:p-4 border rounded-xl bg-black/20 ${previewStyles.divider} text-xs gap-1 md:gap-2`}>
-                        <div className="flex flex-col items-center">
-                          <p className="font-serif font-black text-white text-[32px] md:text-[38px] tracking-wider">Silver</p>
-                          <p className="text-[18px] text-zinc-300 font-bold uppercase font-mono mt-0.5">1 kg</p>
-                        </div>
-                        <span className={`text-[36px] md:text-[46px] font-black tracking-tight ${previewStyles.priceText}`}>
-                          {formatINR(rates.silver)}
-                        </span>
-                      </div>
-                    )}
-
-                    {showPlatinum && (
-                      <div className={`flex flex-col justify-center items-center text-center p-3 md:p-4 border rounded-xl bg-black/20 ${previewStyles.divider} text-xs gap-1 md:gap-2`}>
-                        <div className="flex flex-col items-center">
-                          <p className="font-serif font-black text-white text-[32px] md:text-[38px] tracking-wider">Platinum Pt950</p>
-                          <p className="text-[18px] text-zinc-300 font-bold uppercase font-mono mt-0.5">10gm</p>
-                        </div>
-                        <span className={`text-[36px] md:text-[46px] font-black tracking-tight ${previewStyles.priceText}`}>
-                          {formatINR(rates.platinum)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Footer notes element */}
-                <div className="border-t border-zinc-800/60 pt-2.5 text-center flex flex-col gap-1">
-                  <p className="text-[8px] text-[#D4AF37] font-semibold italic">
-                    {customRatesNote}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        /* --- VIEW 2: ORIGINAL SHOWROOM CAMPAIGN TAGS --- */
-        <div className="flex flex-col gap-6" id="showroom-campaign-panel">
-          
-          <div className="bg-[#15161A] p-4 rounded border border-zinc-800 flex justify-between items-center">
-            <div className="text-zinc-300 text-xs">
-              <span className="font-serif font-bold text-[#D4AF37]">Active Highlight Registry:</span> Setup seasonal tag highlights that run across showroom visual boards.
-            </div>
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="bg-[#D4AF37] hover:bg-[#F4D03F] text-black font-serif font-bold text-xs py-2 px-4 rounded transition-all flex items-center gap-1.5 shadow"
-            >
-              <PlusCircle className="w-4 h-4" /> CREATE CAMPAIGN HIGH-LIGHTER
-            </button>
-          </div>
-
-          {/* NEW OFFER REG_FORM */}
-          {showAddForm && (
-            <div className="p-5 rounded-md bg-[#15161A] border-2 border-[#D4AF37]/45 flex flex-col gap-4 relative animate-fade-in">
-              <button 
-                onClick={() => setShowAddForm(false)} 
-                className="absolute top-4 right-4 text-zinc-400 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-              
-              <h3 className="font-serif text-sm font-semibold text-[#D4AF37] border-b border-zinc-800 pb-2">
-                Register New Stock Launch / Seasonal Highlighter
-              </h3>
-
-              <form onSubmit={submitNewOffer} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
-                <div className="flex flex-col gap-1 md:col-span-2">
-                  <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Offer or Collection Highlight Name</label>
-                  <input 
-                    type="text" 
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="e.g., Temple Kundan Bangle Showcase Gala"
-                    required
-                    className="bg-[#0B0B0D] border border-zinc-800 text-xs p-2.5 rounded focus:border-[#D4AF37] focus:outline-none text-white font-serif"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Sub-tag Identifier</label>
-                  <select
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value as any)}
-                    className="bg-[#0B0B0D] border border-zinc-800 text-xs p-2.5 mt-1 rounded focus:outline-none text-zinc-300"
-                  >
-                    <option value="New Collection">💎 New Collection Arrivals</option>
-                    <option value="Gold Offer">✨ Gold Offer Bonus</option>
-                    <option value="Diamond Offer">💍 Diamond Offer Series</option>
-                    <option value="Exchange Offer">🔄 Old-Gold Exchange Offer</option>
-                  </select>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-mono uppercase tracking-widest text-[#D4AF37] font-semibold">Campaign Status State</label>
-                  <select
-                    value={newStatus}
-                    onChange={(e) => setNewStatus(e.target.value as any)}
-                    className="bg-[#0B0B0D] border border-zinc-800 text-xs p-2.5 mt-1 rounded focus:outline-none text-zinc-300"
-                  >
-                    <option value="active">Active (Broadcasting)</option>
-                    <option value="upcoming">Upcoming Schedule (Queued)</option>
-                    <option value="expired">Expired (Historical Record)</option>
-                  </select>
-                </div>
-
-                {/* Branch Assignment Select */}
-                <div className="md:col-span-2 flex flex-col gap-1">
-                  <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 mb-1.5">Apply to Selected Showrooms</label>
-                  <div className="flex flex-wrap gap-2.5 bg-black/30 p-3 rounded border border-zinc-800">
-                    <button
-                      type="button"
-                      onClick={() => handleBranchSelect('all')}
-                      className={`px-3 py-1.5 rounded text-xs transition-colors flex items-center gap-1.5 ${
-                        selectedBranches.includes('all')
-                          ? 'bg-[#D4AF37] text-black font-semibold'
-                          : 'bg-[#15161A] text-zinc-400 border border-zinc-800'
-                      }`}
-                    >
-                      <Building className="w-3.5 h-3.5" /> All Branches
-                    </button>
-
-                    {branches.map((b) => (
-                      <button
-                        key={b.id}
-                        type="button"
-                        onClick={() => handleBranchSelect(b.id)}
-                        className={`px-3 py-1.5 rounded text-xs transition-colors flex items-center gap-1.5 ${
-                          selectedBranches.includes(b.id)
-                            ? 'bg-[#D4AF37]/15 border border-[#D4AF37] text-[#D4AF37] font-semibold'
-                            : 'bg-[#15161A] text-zinc-400 border border-zinc-800'
-                        }`}
-                      >
-                        <MapPin className="w-3.5 h-3.5" /> {b.name.replace('Showroom -', '').replace('Boutique', '')}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="md:col-span-2 flex gap-2 justify-end mt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddForm(false)}
-                    className="border border-zinc-850 hover:border-zinc-800 text-xs font-serif px-4 py-2 rounded transition-colors text-zinc-400"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="bg-[#D4AF37] hover:bg-[#F4D03F] text-black font-serif font-bold text-xs px-4 py-2 rounded shadow"
-                  >
-                    Deploy Offer Highlighting
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          {/* OFFERS LISTING TABLE */}
-          <div className="bg-[#15161A] border border-[#D4AF37]/20 rounded-md overflow-hidden p-5 flex flex-col gap-4">
-            
-            <div className="border-b border-zinc-800 pb-3 flex justify-between items-center">
-              <h3 className="font-serif text-sm font-semibold text-[#D4AF37] flex items-center gap-2">
-                <Tag className="w-4 h-4" /> Live Showroom Stock Allocations
-              </h3>
-              <span className="text-[10px] text-zinc-500 font-mono">Toggling statuses updates screens instantly</span>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse" id="sale-status-table">
-                <thead>
-                  <tr className="border-b border-zinc-800/80 text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
-                    <th className="pb-3 pt-1 pl-2">Collection Highlights</th>
-                    <th className="pb-3 pt-1">Offer Tag</th>
-                    <th className="pb-3 pt-1">Active Showrooms</th>
-                    <th className="pb-3 pt-1">Broadcasting Status</th>
-                    <th className="pb-3 pt-1 text-center font-bold">Manual Switch</th>
-                    <th className="pb-3 pt-1 text-right">Settings</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {saleStatuses.map((s, idx) => {
-                    
-                    let tagColor = 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400';
-                    if (s.tag === 'New Collection') tagColor = 'bg-purple-500/10 border-purple-500/30 text-purple-400';
-                    else if (s.tag === 'Exchange Offer') tagColor = 'bg-amber-500/10 border-amber-500/30 text-[#D4AF37]';
-                    else if (s.tag === 'Diamond Offer') tagColor = 'text-sky-400 bg-sky-500/10 border-sky-500/20';
-
-                    return (
-                      <tr key={s.id} className="border-b border-zinc-800/50 hover:bg-black/25 transition-colors text-xs">
-                        
-                        {/* Collection Title */}
-                        <td className="py-3.5 pl-2 font-serif font-semibold text-white tracking-wide">
-                          {s.name}
-                        </td>
-
-                        {/* Tag badge */}
-                        <td className="py-3.5">
-                          <span className={`text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded border ${tagColor}`}>
-                            {s.tag}
-                          </span>
-                        </td>
-
-                        {/* Showrooms mapped */}
-                        <td className="py-3.5 text-zinc-400 max-w-[200px]">
-                          {s.branches.includes('all') ? (
-                            <span className="font-mono text-[10px] text-zinc-300 bg-zinc-800 px-2 py-0.5 rounded flex items-center gap-1 w-max border border-zinc-700">
-                              <Building className="w-3 h-3 text-[#D4AF37]" /> ALL BRANCHES
-                            </span>
-                          ) : (
-                            <div className="flex flex-wrap gap-1">
-                              {s.branches.map((bId) => {
-                                const b = branches.find(branch => branch.id === bId);
-                                return (
-                                  <span key={bId} className="text-[9px] font-mono bg-zinc-800 px-1.5 py-0.5 rounded text-[#D4AF37] border border-zinc-750">
-                                    {b ? b.name.replace('Showroom - ', '').replace('Boutique', '').trim() : bId}
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </td>
-
-                        {/* Active State text */}
-                        <td className="py-3.5">
-                          {s.status === 'active' ? (
-                            <span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 font-mono px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 w-max">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Broadcasting
-                            </span>
-                          ) : s.status === 'upcoming' ? (
-                            <span className="text-[9px] bg-amber-500/10 text-amber-500 border border-amber-500/20 font-mono px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 w-max">
-                              Upcoming Queue
-                            </span>
-                          ) : (
-                            <span className="text-[9px] bg-red-400/10 text-red-400 border border-red-500/15 font-mono px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 w-max">
-                              Expired
-                            </span>
-                          )}
-                        </td>
-
-                        {/* Active Switch toggler */}
-                        <td className="py-3.5 text-center">
-                          <button
-                            onClick={() => toggleStatusState(s.id)}
-                            className="text-zinc-400 hover:text-white transition-colors"
-                            title="Toggle broadcast status"
-                          >
-                            {s.status === 'active' ? (
-                              <ToggleRight className="w-7 h-7 text-[#D4AF37] mx-auto cursor-pointer" />
-                            ) : (
-                              <ToggleLeft className="w-7 h-7 text-zinc-600 mx-auto cursor-pointer" />
-                            )}
-                          </button>
-                        </td>
-
-                        {/* Action buttons */}
-                        <td className="py-3.5 text-right pr-2">
-                          <button
-                            onClick={() => deleteStatus(s.id)}
-                            className="text-red-400/70 hover:text-red-400 p-1.5 rounded transition-colors hover:bg-red-500/10 inline-block"
-                            id={`delete-status-${s.id}`}
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </td>
-
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-          </div>
-
-        </div>
-      )}
-
-      {/* --- SOCIAL SHARE MODAL DIALOG MOCKUP --- */}
-      
-      {generatedImageFallback && (
-        <div className="fixed inset-0 bg-black/90 flex flex-col items-center justify-center p-4 z-50 animate-fade-in backdrop-blur-sm">
-          <div className="bg-[#15161A] border border-[#D4AF37] rounded-lg max-w-sm w-full p-4 relative flex flex-col gap-3 shadow-2xl">
-            <button
-              onClick={() => setGeneratedImageFallback(null)}
-              className="absolute -top-3 -right-3 bg-red-600 text-white rounded-full p-1.5 shadow-lg border-2 border-black"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            <p className="text-center text-xs text-zinc-300 mb-1">
-              <strong className="text-emerald-400">Long-press the image</strong> to share to WhatsApp/Instagram.
-            </p>
-            <div className="rounded-lg overflow-hidden border-2 border-zinc-700 bg-black flex justify-center mt-2 max-h-[60vh]">
-              <img src={generatedImageFallback} alt="Generated Poster" className="w-auto h-full object-contain select-auto" style={{ WebkitTouchCallout: 'default' }} />
-            </div>
-            
-
-          </div>
-        </div>
-      )}
-      
-      {showShareModal && (
-
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-[#15161A] border-2 border-[#D4AF37] rounded-lg max-w-lg w-full p-6 relative flex flex-col gap-4">
-            
-            <button
-              onClick={() => setShowShareModal(false)}
-              className="absolute top-4 right-4 text-zinc-400 hover:text-white p-1"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <h3 className="font-serif text-base font-bold text-[#D4AF37] border-b border-zinc-800 pb-2.5 uppercase tracking-wider flex items-center gap-2">
-              <Share2 className="w-5 h-5 text-[#D4AF37]" /> Export & Share Hub
-            </h3>
-
-            {sharePlatform === 'whatsapp' ? (
-              <div className="flex flex-col gap-3">
-                <div className="p-3 bg-emerald-500/10 text-emerald-400 text-xs rounded border border-emerald-500/20">
-                  ✅ <strong>WhatsApp Business Broadcasting Enabled</strong>: Send real-time daily jewellery rate cards to your showroom's subscriber broadcast lists.
-                </div>
-                
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Pre-formatted Message Preview:</span>
-                  <pre className="bg-[#0b0b0d] p-3 rounded border border-zinc-800 text-[11px] text-zinc-200 font-mono whitespace-pre-wrap max-h-52 overflow-y-auto">
-                    {getShareableText()}
-                  </pre>
-                </div>
-
-                <div className="flex gap-2.5 mt-2">
-                  <button
-                    onClick={copyShareableText}
-                    className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-serif font-bold text-xs py-2.5 rounded transition-colors flex items-center justify-center gap-1.5"
-                  >
-                    {copiedText ? (
-                      <>
-                        <Check className="w-4 h-4 text-emerald-400" /> COPIED TO CLIPBOARD
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4" /> COPY RAW RATES TEXT
-                      </>
-                    )}
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      const encoded = encodeURIComponent(getShareableText());
-                      window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
-                    }}
-                    className="flex-1 bg-[#25D366] hover:bg-[#20ba56] text-black font-serif font-extrabold text-xs py-2.5 rounded transition-colors flex items-center justify-center gap-1.5"
-                  >
-                    <Send className="w-4 h-4" /> PUSH TO WHATSAPP
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3">
-                <div className="p-3 bg-fuchsia-500/10 text-fuchsia-400 text-xs rounded border border-fuchsia-500/20">
-                  📸 <strong>Instagram High-Resolution Feed Ready</strong>
-                </div>
-
-                <p className="text-xs text-zinc-300 leading-relaxed">
-                  To publish high-performance graphics on Instagram:
-                </p>
-                
-                <ol className="text-xs text-zinc-400 list-decimal list-inside flex flex-col gap-1.5 bg-black/25 p-3 rounded">
-                  <li>Click <strong>Download PNG</strong> inside the control desk to save the high-res {aspectRatio === '1:1' ? '1200x1200px' : aspectRatio === '4:5' ? '1200x1500px' : '1200x2133px'} rating slide graphics.</li>
-                  <li>Copy the optimized Instagram hashtags & description below.</li>
-                  <li>Upload directly to Instagram Feed, Stories, or broadcast channel highlights.</li>
-                </ol>
-
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#D4AF37]">Optimized Caption:</span>
-                  <div className="bg-[#0b0b0d] p-3 rounded border border-zinc-800 text-[11px] text-zinc-200 font-mono whitespace-pre-wrap max-h-32 overflow-y-auto">
-                    👑 Rates updated live for {activeBranchName}! ✨
-                    {"\n\n"}
-                    Purity Guaranteed. Hallmarked. 
-                    🎨 Theme Style: {activeTheme.replace('_', ' ').toUpperCase()}
-                    {"\n\n"}
-                    #devijewellers #goldrates #silverrate #jewelryshop #weddingjewelry #bridal #luxuryjewellery
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(`Today's rate sheet for ${activeBranchName}. Purity Guaranteed.\n#devijewellers #goldrates #luxury`);
-                    setCopiedText(true);
-                    setTimeout(() => setCopiedText(false), 2000);
-                  }}
-                  className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-serif font-bold text-xs py-2.5 rounded transition-colors flex items-center justify-center gap-1.5"
-                >
-                  {copiedText ? (
-                    <><Check className="w-4 h-4 text-emerald-400" /> COPIED CAPTION</>
-                  ) : (
-                    <><Copy className="w-4 h-4" /> COPY INSTAGRAM CAPTION</>
-                  )}
-                </button>
               </div>
             )}
 
+            {/* Actions */}
+            <div className="flex items-center justify-between gap-2 pt-1">
+              <Button
+                onClick={handleGenerateAiBg}
+                disabled={isGeneratingAiBg}
+                className="flex-1 bg-gradient-to-r from-amber-500 via-gold-500 to-amber-600 hover:from-amber-600 hover:to-gold-600 text-black font-bold h-8 text-xs rounded-lg shadow-md cursor-pointer"
+              >
+                {isGeneratingAiBg ? (
+                  <span className="flex items-center gap-1.5">
+                    <i className="fas fa-circle-notch animate-spin"></i> Generating AI Image...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5">
+                    <i className="fas fa-sparkles"></i> Generate New AI Background
+                  </span>
+                )}
+              </Button>
+
+              {aiBgUrl && (
+                <Button
+                  onClick={() => setAiBgUrl(null)}
+                  variant="outline"
+                  className="h-8 text-xs border-red-500/40 text-red-400 hover:bg-red-500/10 px-3 cursor-pointer"
+                  title="Remove AI Background"
+                >
+                  <i className="fas fa-rotate-left mr-1"></i> Reset
+                </Button>
+              )}
+            </div>
+
+            {aiError && (
+              <div className="bg-red-900/40 border border-red-500/50 text-red-200 p-2 rounded-md text-[11px] flex items-center justify-between">
+                <span><i className="fas fa-exclamation-circle mr-1"></i> {aiError}</span>
+                <button onClick={() => setAiError(null)} className="text-red-300 hover:text-white ml-2 cursor-pointer">×</button>
+              </div>
+            )}
+
+            {aiNotice && (
+              <div className="bg-amber-900/30 border border-amber-500/40 text-amber-200 p-2 rounded-md text-[11px] flex items-center justify-between">
+                <span><i className="fas fa-info-circle mr-1 text-gold-400"></i> {aiNotice}</span>
+                <button onClick={() => setAiNotice(null)} className="text-amber-300 hover:text-white ml-2 cursor-pointer">×</button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Main Poster Container (Captured for Image/WhatsApp) */}
+      <div className="flex-1 w-full flex items-center justify-center p-2 sm:p-4 min-h-0 overflow-hidden">
+        <div
+          ref={captureRef}
+          className={`relative flex flex-col overflow-hidden shadow-2xl transition-all duration-300 ${
+            aspectRatioMode === "whatsapp_status"
+              ? "w-full max-w-[420px] aspect-[9/16] rounded-2xl border-2 border-gold-400/80 my-auto"
+              : "w-full h-full rounded-2xl border border-gold-400/30"
+          }`}
+          style={{
+            backgroundColor: aiBgUrl ? "#0f172a" : theme.background,
+            color: aiBgUrl ? "#ffffff" : theme.text,
+          }}
+        >
+          {/* AI Background Image */}
+          {aiBgUrl && (
+            <>
+              <img
+                src={aiBgUrl}
+                alt="AI Jewellery Background"
+                className="absolute inset-0 w-full h-full object-cover z-0"
+              />
+              {/* Soft dark gradient vignette to make rates stand out crystal clear */}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-black/70 z-0 pointer-events-none" />
+            </>
+          )}
+
+          {/* Header */}
+          <div className="relative z-10 shrink-0 bg-gradient-to-r from-gold-600 via-amber-500 to-gold-700 text-black px-3 py-2 flex justify-center items-center shadow-md">
+            <img
+              src="/logo.png"
+              alt="Devi Jewellers Logo"
+              className="h-14 md:h-18 w-[200px] md:w-[280px] object-contain drop-shadow"
+            />
+          </div>
+
+          {/* Capture Area */}
+          <div className="relative z-10 flex-1 flex flex-col w-full min-h-0 overflow-hidden">
+            {/* Top bar */}
+            <div className="shrink-0 bg-gradient-to-r from-jewelry-primary/95 to-jewelry-secondary/95 text-white py-1.5 px-3 flex items-center justify-center shadow-md border-b border-gold-400/40 backdrop-blur-sm">
+              <div className="text-center">
+                <div className="text-xs md:text-sm font-semibold text-gold-200">
+                  {format(currentTime, "EEEE dd-MMM-yyyy")}
+                </div>
+                <div className="text-base md:text-xl font-extrabold text-white tracking-wider">
+                  {format(currentTime, "HH:mm")}
+                </div>
+              </div>
+            </div>
+
+            {/* Title */}
+            <div className="shrink-0 bg-gradient-to-r from-gold-600 via-amber-500 to-gold-700 text-white text-center py-1 md:py-1.5 shadow">
+              <h2 className="font-display font-black text-sm sm:text-base md:text-2xl drop-shadow text-amber-950 tracking-wider">
+                TODAY'S SALE RATES
+              </h2>
+            </div>
+
+            {/* Rate Cards */}
+            <div className="flex-1 min-h-0 flex flex-col gap-2 p-2 sm:p-2.5 overflow-hidden">
+              <RateCard title="24K GOLD (Per 10 gms)" value={currentRates.gold_24k_sale} hasBg={!!aiBgUrl} />
+              <RateCard title="22K GOLD (Per 10 gms)" value={currentRates.gold_22k_sale} hasBg={!!aiBgUrl} />
+              <RateCard title="18K GOLD (Per 10 gms)" value={currentRates.gold_18k_sale} hasBg={!!aiBgUrl} />
+              <RateCard title="SILVER (Per KG)" value={currentRates.silver_per_kg_sale} hasBg={!!aiBgUrl} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer Controls */}
+      <div
+        id="action-footer"
+        className="shrink-0 w-full border-t border-gray-800 bg-gray-900/95 shadow-inner z-30"
+      >
+        <div className="max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-center gap-3">
+          <Button
+            onClick={handleSaveImage}
+            className="bg-gradient-to-r from-amber-500 to-gold-600 hover:from-amber-600 hover:to-gold-700 text-black px-5 py-2.5 text-sm sm:text-base font-bold rounded-lg shadow-md border border-gold-300/40 cursor-pointer"
+            disabled={isWorking !== "idle"}
+          >
+            <i className="fas fa-download mr-2"></i>
+            {isWorking === "saving" ? "Saving..." : "Save Image"}
+          </Button>
+          <Button
+            onClick={handleShareWhatsApp}
+            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 text-sm sm:text-base font-bold rounded-lg shadow-md border border-green-400/30 cursor-pointer"
+            disabled={isWorking !== "idle"}
+          >
+            <i className="fab fa-whatsapp mr-2 text-lg"></i>
+            {isWorking === "sharing" ? "Opening Share..." : "Share on WhatsApp"}
+          </Button>
+        </div>
+      </div>
+
+      {/* Preview Overlay */}
+      {previewUrl && (
+        <div
+          id="preview-overlay"
+          className="fixed inset-0 z-50 bg-black/90 p-0 flex items-center justify-center"
+          onClick={() => setPreviewUrl(null)}
+        >
+          <div className="relative w-full h-full flex items-center justify-center p-2">
+            <img
+              src={previewUrl}
+              alt="Preview"
+              className="max-h-full max-w-full w-auto h-auto object-contain rounded-lg shadow-2xl"
+              onClick={(e) => e.stopPropagation()} /* allow long-press without closing */
+            />
+            <div className="absolute top-4 right-4 z-50">
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => setPreviewUrl(null)}
+                className="rounded-full w-9 h-9 p-0 flex items-center justify-center cursor-pointer"
+              >
+                <i className="fas fa-times text-lg"></i>
+              </Button>
+            </div>
+            <div className="absolute bottom-6 inset-x-0 flex items-center justify-center pointer-events-none px-4">
+              <div
+                className="pointer-events-auto bg-gray-900/90 border border-gold-500/50 rounded-xl px-5 py-3 text-gold-100 shadow-xl text-center backdrop-blur-md"
+                onClick={() => setPreviewUrl(null)}
+              >
+                <div className="text-sm font-bold flex items-center justify-center gap-2">
+                  <i className="fas fa-hand-pointer text-amber-400"></i> Long press the image to Save/Download
+                </div>
+                <div className="text-[11px] mt-1 text-gray-400">Tap anywhere to close</div>
+              </div>
+            </div>
           </div>
         </div>
       )}
+    </div>
+  );
+}
 
+// Rate Card Component
+function RateCard({ title, value, hasBg }: { title: string; value: number | string; hasBg?: boolean }) {
+  const formattedVal = typeof value === "number" ? value.toLocaleString("en-IN") : (value ?? 0);
+  const text = `₹${formattedVal}`;
+  const charLen = text.length;
+  const viewBoxWidth = Math.max(100, charLen * 18);
+
+  return (
+    <div
+      className={`flex-1 min-h-0 w-full border-2 border-gold-400 flex flex-col shadow-lg rounded-2xl overflow-hidden transition-all ${
+        hasBg
+          ? "bg-white/90 backdrop-blur-md shadow-amber-950/30"
+          : "bg-white shadow-md"
+      }`}
+    >
+      <div className="flex items-center justify-between w-full px-3 py-1 sm:py-1.5 shrink-0 bg-gradient-to-r from-amber-100/90 via-gold-50/80 to-amber-100/90 border-b border-gold-300">
+        <h4 className="text-xs sm:text-sm md:text-lg font-black text-gray-950 uppercase tracking-wide">{title}</h4>
+        <div className="w-6 h-6 md:w-8 md:h-8 bg-jewelry-primary rounded-full gold-shimmer flex items-center justify-center shadow-sm">
+          <i className="fas fa-rupee-sign text-white text-xs sm:text-sm"></i>
+        </div>
+      </div>
+      <div className="flex-1 min-h-0 flex items-center justify-center overflow-hidden p-1">
+        <svg
+          className="w-full h-full max-h-12 sm:max-h-16 md:max-h-20"
+          viewBox={`0 0 ${viewBoxWidth} 40`}
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <text
+            x="50%"
+            y="50%"
+            dominantBaseline="central"
+            textAnchor="middle"
+            fill="#1e3a8a"
+            stroke="#1e3a8a"
+            strokeWidth="0.8"
+            strokeLinejoin="round"
+            className="font-black"
+            fontFamily="'League Spartan', 'Gill Sans Ultra Bold', 'Arial Black', sans-serif"
+            fontWeight="900"
+            fontSize="28"
+          >
+            {text}
+          </text>
+        </svg>
+      </div>
     </div>
   );
 }
