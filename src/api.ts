@@ -1,577 +1,136 @@
-import express from "express";
-import {
-  syncRates,
-  latestRatesInMemory,
-  lastSyncAttemptAt,
-} from "./syncService.js";
-import { sql, desc } from "drizzle-orm";
-import { db } from "./db/index.js";
-import {
-  rates,
-  syncLogs,
-  calculationSettings,
-  globalState,
-} from "./db/schema.js";
+/**
+ * Client API services for rates, settings, and Gemini AI status backgrounds
+ */
 
-export const apiRouter = express.Router();
+export interface CurrentRatesResponse {
+  gold_24k_sale: number;
+  gold_22k_sale: number;
+  gold_18k_sale: number;
+  silver_per_kg_sale: number;
+  gold24kSale?: number;
+  gold22kSale?: number;
+  gold18kSale?: number;
+  silverSale?: number;
+  [key: string]: any;
+}
 
-apiRouter.use(express.json({ limit: "50mb" }));
-apiRouter.use(express.urlencoded({ limit: "50mb", extended: true }));
+export interface DisplaySettingsResponse {
+  background_color?: string;
+  text_color?: string;
+  customPrimaryBg?: string;
+  customGoldColor?: string;
+  [key: string]: any;
+}
 
-// Prevent caching for all API routes
-apiRouter.use((req, res, next) => {
-  res.header("Cache-Control", "no-cache, no-store, must-revalidate");
-  res.header("Pragma", "no-cache");
-  res.header("Expires", "0");
-  next();
-});
+export interface GenerateBgRequest {
+  promptType: "plain_gold" | "marathi_lady" | "royal_gold" | "custom";
+  customPrompt?: string;
+  aspectRatio?: "9:16" | "1:1" | "16:9" | "3:4" | "4:3";
+}
 
-apiRouter.get("/rates/current", async (req, res) => {
-  try {
-    const settingsLog = await db
-      .select()
-      .from(calculationSettings)
-      .limit(1)
-      .catch(() => [
-        { syncIntervalMinutes: 5, enableAutoSync: true, storeRatesInDb: true },
-      ]);
-    const currentSettings = settingsLog[0];
-    const isStoreEnabled =
-      !currentSettings || currentSettings.storeRatesInDb !== false;
+export interface GenerateBgResponse {
+  imageUrl?: string;
+  notice?: string;
+  error?: string;
+}
 
-    // If database rates storage is disabled and we have rates in memory, return memory rates
-    if (!isStoreEnabled && latestRatesInMemory) {
-      // Lazy sync check (only if auto-sync is enabled)
-      const lastUpdate = latestRatesInMemory.updatedAt?.getTime() || Date.now();
-      const minutes = currentSettings?.syncIntervalMinutes || 5;
-      const isAutoSyncEnabled =
-        !currentSettings || currentSettings.enableAutoSync !== false;
-      const lastAttempt = Math.max(lastUpdate, lastSyncAttemptAt);
-
-      if (isAutoSyncEnabled && Date.now() - lastAttempt > minutes * 60000) {
-        await syncRates().catch((e) =>
-          console.error("Lazy in-memory sync failed in background:", e),
-        );
-      }
-      return res.json(latestRatesInMemory);
-    }
-
-    let current = await db
-      .select()
-      .from(rates)
-      .orderBy(desc(rates.id))
-      .limit(1)
-      .catch(async (e) => {
-        console.warn("Retrying rate select due to error:", e);
-        return await db.select().from(rates).orderBy(desc(rates.id)).limit(1); // retry once
-      });
-
-    // Lazy sync check (only if enabled)
-    if (current[0]) {
-      const lastUpdate = current[0].updatedAt?.getTime() || Date.now();
-      const minutes = currentSettings?.syncIntervalMinutes || 5;
-      const isAutoSyncEnabled =
-        !currentSettings || currentSettings.enableAutoSync !== false;
-      const lastAttempt = Math.max(lastUpdate, lastSyncAttemptAt);
-
-      if (isAutoSyncEnabled && Date.now() - lastAttempt > minutes * 60000) {
-        // Await sync so Vercel serverless function doesn't terminate early.
-        await syncRates().catch((e) =>
-          console.error("Lazy sync failed in background:", e),
-        );
-        // Refetch to serve the absolute latest data:
-        current = await db
-          .select()
-          .from(rates)
-          .orderBy(desc(rates.id))
-          .limit(1)
-          .catch(() => current);
-      }
-    } else if (!isStoreEnabled && !latestRatesInMemory) {
-      // If we don't have db record and storage is disabled, trigger initial sync
-      try {
-        await syncRates();
-        if (latestRatesInMemory) {
-          return res.json(latestRatesInMemory);
+export const ratesApi = {
+  getCurrent: async (): Promise<CurrentRatesResponse> => {
+    try {
+      const res = await fetch(`/api/rates/current?_t=${Date.now()}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      
+      if (!data) {
+        // Fallback to localStorage if server returns empty
+        const saved = localStorage.getItem("asm_rates");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          return {
+            gold_24k_sale: parsed.gold24k || 154300,
+            gold_22k_sale: parsed.gold22k || 141950,
+            gold_18k_sale: parsed.gold18k || 116120,
+            silver_per_kg_sale: parsed.silver || 260000,
+          };
         }
-      } catch (e) {
-        console.error("Initial trigger sync failed:", e);
       }
+
+      const gold24k = data.gold_24k_sale || data.gold24kSale || data.gold24k || 154300;
+      const gold22k = data.gold_22k_sale || data.gold22kSale || data.gold22k || 141950;
+      const gold18k = data.gold_18k_sale || data.gold18kSale || data.gold18k || 116120;
+      const silver = data.silver_per_kg_sale || data.silver_sale || data.silverSale || data.silver || 260000;
+
+      return {
+        ...data,
+        gold_24k_sale: gold24k,
+        gold_22k_sale: gold22k,
+        gold_18k_sale: gold18k,
+        silver_per_kg_sale: silver,
+        silver_sale: silver,
+      };
+    } catch (err) {
+      console.warn("Falling back to local rates:", err);
+      const saved = localStorage.getItem("asm_rates");
+      const parsed = saved ? JSON.parse(saved) : {};
+      return {
+        gold_24k_sale: parsed.gold24k || 154300,
+        gold_22k_sale: parsed.gold22k || 141950,
+        gold_18k_sale: parsed.gold18k || 116120,
+        silver_per_kg_sale: parsed.silver || 260000,
+      };
     }
+  },
+};
 
-    res.json(current[0] || null);
-  } catch (error: any) {
-    console.error("Error fetching rates:", error);
-    const rootCause = error.cause ? String(error.cause) : error.stack;
-    const isDbUnconfigured =
-      (rootCause && rootCause.includes("ECONNREFUSED 127.0.0.1")) ||
-      (error.message && error.message.includes("ECONNREFUSED 127.0.0.1"));
-    const msg = isDbUnconfigured
-      ? "Database requires configuration. Please add POSTGRES_URL or DATABASE_URL environment variables to your deployment."
-      : error.message || "Internal Server Error";
-    res.status(500).json({ error: msg });
-  }
-});
+export const settingsApi = {
+  getDisplay: async (): Promise<DisplaySettingsResponse> => {
+    try {
+      const res = await fetch(`/api/settings/display`);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {}
 
+    // Fallback to local state
+    try {
+      const saved = localStorage.getItem("asm_displaySetting");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          background_color: parsed.customPrimaryBg || "#FFF8E1",
+          text_color: "#212529",
+          ...parsed,
+        };
+      }
+    } catch {}
 
-apiRouter.post("/rates/manual_push", async (req, res) => {
-  try {
-    const received = req.body;
-    
-    // Map frontend JewelleryRates to DB schema
-    const roundTo10 = (val) => Math.round(val / 10) * 10;
-    const newDbRow = {
-      gold24kSale: roundTo10(received.gold24k),
-      gold24kExchange: roundTo10(received.gold24kExchange || (received.gold24k - 50)),
-      gold24kPurchase: roundTo10(received.gold24kPurchase || (received.gold24k - 200)),
-      gold22kSale: roundTo10(received.gold22k),
-      gold22kExchange: roundTo10(received.gold22kExchange || (received.gold22k - 50)),
-      gold22kPurchase: roundTo10(received.gold22kPurchase || (received.gold22k - 200)),
-      gold18kSale: roundTo10(received.gold18k),
-      gold18kExchange: roundTo10(received.gold18kExchange || (received.gold18k - 50)),
-      gold18kPurchase: roundTo10(received.gold18kPurchase || (received.gold18k - 200)),
-      silverSale: roundTo10(received.silver),
-      silverPurchase: roundTo10(received.silverPurchase || (received.silver - 2000)),
-      platinumSale: roundTo10(received.platinum),
-      platinumPurchase: roundTo10(received.platinumPurchase || (received.platinum - 4000)),
+    return {
+      background_color: "#FFF8E1",
+      text_color: "#212529",
     };
+  },
+};
 
-    const inserted = await db.insert(rates).values(newDbRow).returning();
-    
-    // Broadcast via socket.io
-    const io = req.app.get("io");
-    if (io) {
-      io.emit("rate_update", {
-        type: "sync_success",
-        data: inserted[0],
+export const geminiApi = {
+  generateStatusBg: async (params: GenerateBgRequest): Promise<GenerateBgResponse> => {
+    try {
+      const res = await fetch("/api/gemini/generate-status-bg", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
       });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || `HTTP Error ${res.status}`);
+      }
+
+      return await res.json();
+    } catch (err: any) {
+      console.error("Gemini API Error:", err);
+      return {
+        error: err.message || "Failed to generate AI background",
+      };
     }
-
-    res.json({ success: true, data: inserted[0] });
-  } catch (err: any) {
-    console.error("Manual push error:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-apiRouter.post("/rates/sync", async (req, res) => {
-  // Manual sync trigger
-  try {
-    await syncRates();
-    res.json({ success: true });
-  } catch (error: any) {
-    const rootCause = error.cause ? String(error.cause) : error.stack;
-    const isDbUnconfigured =
-      rootCause.includes("ECONNREFUSED 127.0.0.1") ||
-      error.message.includes("ECONNREFUSED 127.0.0.1");
-    const msg = isDbUnconfigured
-      ? "Database requires configuration. Please add POSTGRES_URL or DATABASE_URL environment variables to your deployment."
-      : error.message + " | CAUSE: " + rootCause;
-    res.status(500).json({ error: msg });
-  }
-});
-
-// Allow GET for easy Synology NAS / External Cron integrations
-apiRouter.get("/init-db", async (req, res) => {
-  try {
-    // Database schema is managed via Drizzle migrations internally in AI Studio.
-    // However, for external deployments (like Vercel), we allow creating tables here.
-
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        uid TEXT NOT NULL UNIQUE,
-        email TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW()
-      );
-    `);
-
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS rates (
-        id SERIAL PRIMARY KEY,
-        gold_24k_sale INTEGER NOT NULL,
-        gold_24k_purchase INTEGER NOT NULL,
-        gold_22k_sale INTEGER NOT NULL,
-        gold_22k_purchase INTEGER NOT NULL,
-        gold_18k_sale INTEGER NOT NULL,
-        gold_18k_purchase INTEGER NOT NULL,
-        silver_sale INTEGER NOT NULL,
-        silver_purchase INTEGER NOT NULL,
-        platinum_sale INTEGER NOT NULL,
-        platinum_purchase INTEGER NOT NULL,
-        updated_at TIMESTAMP DEFAULT NOW()
-      );
-    `);
-
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS rate_history_logs (
-        id SERIAL PRIMARY KEY,
-        source_api_response JSONB,
-        gold_24k_sale INTEGER NOT NULL,
-        gold_24k_purchase INTEGER NOT NULL,
-        gold_22k_sale INTEGER NOT NULL,
-        gold_22k_purchase INTEGER NOT NULL,
-        gold_18k_sale INTEGER NOT NULL,
-        gold_18k_purchase INTEGER NOT NULL,
-        silver_sale INTEGER NOT NULL,
-        silver_purchase INTEGER NOT NULL,
-        platinum_sale INTEGER NOT NULL,
-        platinum_purchase INTEGER NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW()
-      );
-    `);
-
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS sync_logs (
-        id SERIAL PRIMARY KEY,
-        status TEXT NOT NULL,
-        api_response JSONB,
-        error_message TEXT,
-        created_at TIMESTAMP DEFAULT NOW()
-      );
-    `);
-
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS calculation_settings (
-        id SERIAL PRIMARY KEY,
-        sync_interval_minutes INTEGER NOT NULL DEFAULT 1,
-        silver_purchase_offset INTEGER NOT NULL DEFAULT 5000,
-        platinum_purchase_offset INTEGER NOT NULL DEFAULT 4000,
-        enable_auto_sync BOOLEAN NOT NULL DEFAULT true,
-        store_rates_in_db BOOLEAN NOT NULL DEFAULT true,
-        updated_at TIMESTAMP DEFAULT NOW()
-      );
-    `);
-
-    // Auto-migrate newly added columns for existing users
-    await db
-      .execute(
-        sql`
-      ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS enable_auto_sync BOOLEAN NOT NULL DEFAULT true;
-      ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS page_reload_interval_minutes INTEGER NOT NULL DEFAULT 60;
-    `,
-      )
-      .catch(() => {});
-    await db
-      .execute(
-        sql`
-      ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS store_rates_in_db BOOLEAN NOT NULL DEFAULT true;
-    `,
-      )
-      .catch(() => {});
-    await db
-      .execute(
-        sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold24k_exc_mult DOUBLE PRECISION NOT NULL DEFAULT 0.990;`,
-            sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold24k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.985;`,
-      )
-      .catch(() => {});
-    await db
-      .execute(
-        sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold22k_sale_mult DOUBLE PRECISION NOT NULL DEFAULT 0.920;`,
-      )
-      .catch(() => {});
-    await db
-      .execute(
-        sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold22k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.900;`,
-      )
-      .catch(() => {});
-    await db
-      .execute(
-        sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold18k_sale_mult DOUBLE PRECISION NOT NULL DEFAULT 0.860;`,
-      )
-      .catch(() => {});
-    await db
-      .execute(
-        sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold18k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.800;`,
-      )
-      .catch(() => {});
-
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS global_state (
-        id SERIAL PRIMARY KEY,
-        module_name TEXT NOT NULL UNIQUE,
-        data JSONB NOT NULL,
-        updated_at TIMESTAMP DEFAULT NOW()
-      );
-    `);
-
-    res.json({
-      success: true,
-      message:
-        "Database initialized successfully! All required tables are structured.",
-    });
-  } catch (error: any) {
-    if (error.message?.includes("permission denied")) {
-      return res.json({
-        success: true,
-        message:
-          "On AI Studio, database is already managed by drizzle. Initialization skipped.",
-      });
-    }
-    const rootCause = error.cause ? String(error.cause) : error.stack;
-    res.status(500).json({ error: error.message + " | CAUSE: " + rootCause });
-  }
-});
-
-apiRouter.get("/rates/sync", async (req, res) => {
-  try {
-    await syncRates();
-    res.json({ success: true });
-  } catch (error: any) {
-    const rootCause = error.cause ? String(error.cause) : error.stack;
-    const isDbUnconfigured =
-      rootCause.includes("ECONNREFUSED 127.0.0.1") ||
-      error.message.includes("ECONNREFUSED 127.0.0.1");
-    const msg = isDbUnconfigured
-      ? "Database requires configuration. Please add POSTGRES_URL or DATABASE_URL environment variables to your deployment."
-      : error.message + " | CAUSE: " + rootCause;
-    res.status(500).json({ error: msg });
-  }
-});
-
-apiRouter.get("/settings", async (req, res) => {
-  try {
-    let current = await db
-      .select()
-      .from(calculationSettings)
-      .limit(1)
-      .catch(async (e) => {
-        console.warn("Retrying settings (auto-migrating)...");
-        await db
-          .execute(
-            sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS enable_auto_sync BOOLEAN NOT NULL DEFAULT true;`,
-              sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS page_reload_interval_minutes INTEGER NOT NULL DEFAULT 60;`,
-            sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS page_reload_interval_minutes INTEGER NOT NULL DEFAULT 60;`,
-          )
-          .catch(console.error);
-        await db
-          .execute(
-            sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS store_rates_in_db BOOLEAN NOT NULL DEFAULT true;`,
-          )
-          .catch(console.error);
-        await db
-          .execute(
-            sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold24k_exc_mult DOUBLE PRECISION NOT NULL DEFAULT 0.990;`,
-            sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold24k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.985;`,
-          )
-          .catch(console.error);
-        await db
-          .execute(
-            sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold22k_sale_mult DOUBLE PRECISION NOT NULL DEFAULT 0.920;`,
-          )
-          .catch(console.error);
-        await db
-          .execute(
-            sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold22k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.900;`,
-          )
-          .catch(console.error);
-        await db
-          .execute(
-            sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold18k_sale_mult DOUBLE PRECISION NOT NULL DEFAULT 0.860;`,
-          )
-          .catch(console.error);
-        await db
-          .execute(
-            sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold18k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.800;`,
-          )
-          .catch(console.error);
-        await db
-          .execute(
-            sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS use_manual_rates BOOLEAN NOT NULL DEFAULT false;`,
-          )
-          .catch(console.error);
-        await db
-          .execute(
-            sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS manual_gold24k INTEGER NOT NULL DEFAULT 150000;`,
-          )
-          .catch(console.error);
-        await db
-          .execute(
-            sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS manual_silver INTEGER NOT NULL DEFAULT 250000;`,
-          )
-          .catch(console.error);
-        await db
-          .execute(
-            sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS manual_platinum INTEGER NOT NULL DEFAULT 0;`,
-          )
-          .catch(console.error);
-        return await db.select().from(calculationSettings).limit(1);
-      });
-    console.log(
-      "Settings keys:",
-      current[0] ? Object.keys(current[0]) : "No settings row",
-    );
-    res.json(
-      current[0] || {
-        syncIntervalMinutes: 5,
-        silverPurchaseOffset: 5000,
-        platinumPurchaseOffset: 4000,
-        enableAutoSync: true,
-      },
-    );
-  } catch (err: any) {
-    const rootCause = err.cause ? String(err.cause) : err.stack;
-    res.status(500).json({ error: err.message + " | CAUSE: " + rootCause });
-  }
-});
-
-apiRouter.post("/settings", async (req, res) => {
-  try {
-    if (req.body) {
-      await db
-        .insert(calculationSettings)
-        .values({ id: 1, ...req.body })
-        .onConflictDoUpdate({
-          target: calculationSettings.id,
-          set: { ...req.body, updatedAt: new Date() },
-        })
-        .catch(async (e) => {
-          console.warn(
-            "Attempting auto-migration on settings post due to error:",
-            e,
-          );
-          await db
-            .execute(
-              sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS enable_auto_sync BOOLEAN NOT NULL DEFAULT true;`,
-            )
-            .catch(() => {});
-          await db
-            .execute(
-              sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS store_rates_in_db BOOLEAN NOT NULL DEFAULT true;`,
-            )
-            .catch(() => {});
-          await db
-            .execute(
-              sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold24k_exc_mult DOUBLE PRECISION NOT NULL DEFAULT 0.990;`,
-            sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold24k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.985;`,
-            )
-            .catch(() => {});
-          await db
-            .execute(
-              sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold22k_sale_mult DOUBLE PRECISION NOT NULL DEFAULT 0.920;`,
-            )
-            .catch(() => {});
-          await db
-            .execute(
-              sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold22k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.900;`,
-            )
-            .catch(() => {});
-          await db
-            .execute(
-              sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold18k_sale_mult DOUBLE PRECISION NOT NULL DEFAULT 0.860;`,
-            )
-            .catch(() => {});
-          await db
-            .execute(
-              sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold18k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.800;`,
-            )
-            .catch(() => {});
-          await db
-            .execute(
-              sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS use_manual_rates BOOLEAN NOT NULL DEFAULT false;`,
-            )
-            .catch(() => {});
-          await db
-            .execute(
-              sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS manual_gold24k INTEGER NOT NULL DEFAULT 150000;`,
-            )
-            .catch(() => {});
-          await db
-            .execute(
-              sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS manual_silver INTEGER NOT NULL DEFAULT 250000;`,
-            )
-            .catch(() => {});
-          await db
-            .execute(
-              sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS manual_platinum INTEGER NOT NULL DEFAULT 0;`,
-            )
-            .catch(() => {});
-
-          await db
-            .insert(calculationSettings)
-            .values({ id: 1, ...req.body })
-            .onConflictDoUpdate({
-              target: calculationSettings.id,
-              set: { ...req.body, updatedAt: new Date() },
-            });
-        });
-    }
-    res.json({ success: true });
-  } catch (err: any) {
-    const rootCause = err.cause ? String(err.cause) : err.stack;
-    res.status(500).json({ error: err.message + " | CAUSE: " + rootCause });
-  }
-});
-
-apiRouter.get("/logs", async (req, res) => {
-  try {
-    const recentLogs = await db
-      .select()
-      .from(syncLogs)
-      .orderBy(syncLogs.createdAt)
-      .limit(20)
-      .catch(async (e) => {
-        console.warn("Retrying logs...");
-        return await db
-          .select()
-          .from(syncLogs)
-          .orderBy(syncLogs.createdAt)
-          .limit(20);
-      });
-    res.json(recentLogs);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// New Unified API endpoints for Android App (Media, Promos, Configs, Branches, etc.)
-apiRouter.get("/state/:module", async (req, res) => {
-  try {
-    const { module } = req.params;
-    let current = await db
-      .select()
-      .from(globalState)
-      .where(sql`${globalState.moduleName} = ${module}`)
-      .limit(1);
-
-    if (!current || current.length === 0) {
-      return res.json({
-        success: true,
-        data: null,
-        message:
-          "Settings not yet configured in DB. Rely on internal defaults.",
-      });
-    }
-    res.json({ success: true, data: current[0].data });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-apiRouter.post("/state/:module", async (req, res) => {
-  try {
-    const { module } = req.params;
-    if (!req.body || typeof req.body !== "object") {
-      return res
-        .status(400)
-        .json({ error: "Body must be a JSON object or array" });
-    }
-
-    const existing = await db.select().from(globalState).where(sql`module_name = ${module}`).limit(1);
-    if (existing.length > 0) {
-      await db.update(globalState).set({ data: req.body as any, updatedAt: new Date() }).where(sql`module_name = ${module}`);
-    } else {
-      await db.insert(globalState).values({ moduleName: module, data: req.body as any });
-    }
-
-    // Broadcast to other clients that a state changed
-    const io = req.app.get("io");
-    if (io) {
-      io.emit("state_update", { module, data: req.body });
-    }
-
-    res.json({ success: true });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
+  },
+};
