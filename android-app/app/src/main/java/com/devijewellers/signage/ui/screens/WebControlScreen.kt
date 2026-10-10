@@ -53,8 +53,13 @@ class WebAppInterface(private val context: Context) {
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "image/png"
                 putExtra(Intent.EXTRA_STREAM, uri)
-                putExtra(Intent.EXTRA_TITLE, title)
-                putExtra(Intent.EXTRA_TEXT, text)
+                if (title.isNotEmpty()) {
+                    putExtra(Intent.EXTRA_TITLE, title)
+                }
+                // Only attach text if provided (do not attach text if empty so only image is shared)
+                if (text.isNotEmpty()) {
+                    putExtra(Intent.EXTRA_TEXT, text)
+                }
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 
                 // Set specific package if available (e.g., com.whatsapp)
@@ -62,7 +67,6 @@ class WebAppInterface(private val context: Context) {
                     setPackage(pkg)
                 }
             }
-            // Always use chooser in case package is not installed or explicit package not provided
             val chooser = Intent.createChooser(shareIntent, "Share Image")
             chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(chooser)
@@ -70,13 +74,24 @@ class WebAppInterface(private val context: Context) {
             e.printStackTrace()
             // Fallback for intent if specific package is invalid
             try {
+                val imagesDir = File(context.cacheDir, "images")
+                val imageFile = File(imagesDir, "rate_card.png")
+                val uri = if (imageFile.exists()) {
+                    FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", imageFile)
+                } else null
+
                 val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
                     type = "image/png"
-                    putExtra(Intent.EXTRA_TEXT, text)
+                    if (uri != null) {
+                        putExtra(Intent.EXTRA_STREAM, uri)
+                    }
+                    if (text.isNotEmpty()) {
+                        putExtra(Intent.EXTRA_TEXT, text)
+                    }
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
-                context.startActivity(Intent.createChooser(fallbackIntent, "Share Info"))
+                context.startActivity(Intent.createChooser(fallbackIntent, "Share Image"))
             } catch (ex: Exception) {
                 ex.printStackTrace()
             }
@@ -139,12 +154,37 @@ fun WebControlScreen(url: String = "https://devijewellers-display.vercel.app/") 
                         view: WebView?,
                         request: WebResourceRequest?
                     ): Boolean {
-                        // Return false to let the WebView handle the URL navigation natively
+                        val uri = request?.url ?: return false
+                        val urlStr = uri.toString()
+                        if (urlStr.startsWith("whatsapp:") || urlStr.startsWith("intent:") || urlStr.startsWith("tel:") || urlStr.startsWith("mailto:")) {
+                            try {
+                                val intent = Intent.parseUri(urlStr, Intent.URI_INTENT_SCHEME).apply {
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                }
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                            return true
+                        }
+                        // Return false to let the WebView handle normal HTTP/HTTPS URL navigation natively
                         return false
                     }
 
                     @Deprecated("Deprecated in Java")
                     override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+                        if (url == null) return false
+                        if (url.startsWith("whatsapp:") || url.startsWith("intent:") || url.startsWith("tel:") || url.startsWith("mailto:")) {
+                            try {
+                                val intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME).apply {
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                }
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                            return true
+                        }
                         return false
                     }
 
