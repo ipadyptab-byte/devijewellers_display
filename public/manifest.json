@@ -1,0 +1,22 @@
+{
+  "name": "Devi Jewellers Display",
+  "short_name": "Devi TV",
+  "description": "Devi Jewellers Elite Jewellery Rate Display Engine",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0B0D",
+  "theme_color": "#D4AF37",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "any",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
