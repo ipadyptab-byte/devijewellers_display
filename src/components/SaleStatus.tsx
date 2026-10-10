@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ratesApi, settingsApi, geminiApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -156,25 +155,67 @@ export default function SaleStatus({
     return () => clearInterval(timer);
   }, []);
 
-  const { data: currentRates } = useQuery({
-    queryKey: ["/api/rates/current"],
-    queryFn: ratesApi.getCurrent,
-    initialData: initialRatesProp
-      ? {
-          gold_24k_sale: initialRatesProp.gold24k,
-          gold_22k_sale: initialRatesProp.gold22k,
-          gold_18k_sale: initialRatesProp.gold18k,
-          silver_per_kg_sale: initialRatesProp.silver,
-        }
-      : undefined,
-    refetchInterval: 30000,
+  const [currentRates, setCurrentRates] = useState<any>(() => {
+    if (initialRatesProp) {
+      return {
+        gold_24k_sale: initialRatesProp.gold24k,
+        gold_22k_sale: initialRatesProp.gold22k,
+        gold_18k_sale: initialRatesProp.gold18k,
+        silver_per_kg_sale: initialRatesProp.silver,
+      };
+    }
+    return {
+      gold_24k_sale: 74500,
+      gold_22k_sale: 68500,
+      gold_18k_sale: 56200,
+      silver_per_kg_sale: 92000,
+    };
   });
 
-  const { data: settings } = useQuery({
-    queryKey: ["/api/settings/display"],
-    queryFn: settingsApi.getDisplay,
-    refetchInterval: 30000,
+  const [settings, setSettings] = useState<{ background_color?: string; text_color?: string }>({
+    background_color: "#FFF8E1",
+    text_color: "#212529",
   });
+
+  useEffect(() => {
+    if (initialRatesProp) {
+      setCurrentRates({
+        gold_24k_sale: initialRatesProp.gold24k,
+        gold_22k_sale: initialRatesProp.gold22k,
+        gold_18k_sale: initialRatesProp.gold18k,
+        silver_per_kg_sale: initialRatesProp.silver,
+      });
+    }
+  }, [initialRatesProp]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchRatesAndSettings = async () => {
+      try {
+        const [ratesRes, settingsRes] = await Promise.allSettled([
+          ratesApi.getCurrent(),
+          settingsApi.getDisplay(),
+        ]);
+        if (isMounted) {
+          if (ratesRes.status === "fulfilled" && ratesRes.value) {
+            setCurrentRates(ratesRes.value);
+          }
+          if (settingsRes.status === "fulfilled" && settingsRes.value) {
+            setSettings(settingsRes.value);
+          }
+        }
+      } catch {
+        // graceful fallback to initial rates
+      }
+    };
+
+    fetchRatesAndSettings();
+    const interval = setInterval(fetchRatesAndSettings, 30000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   const theme = useMemo(() => {
     return {
