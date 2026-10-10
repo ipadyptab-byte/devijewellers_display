@@ -25,6 +25,70 @@ jobs:
           gradle-version: '8.4'
           build-root-directory: android-app
 
+      - name: Ensure Android App Icons
+        run: |
+          set -e
+          echo "Checking Android app icons..."
+
+          SOURCE_ICON=""
+          for p in "public/appstore.png" "devijewellers_display-main/public/appstore.png" "appstore.png"; do
+            if [ -f "$p" ]; then
+              SOURCE_ICON="$p"
+              break
+            fi
+          done
+
+          RES_DIR="android-app/app/src/main/res"
+          mkdir -p "$RES_DIR"
+
+          if [ ! -f "$RES_DIR/mipmap-hdpi/ic_launcher.png" ]; then
+            echo "Generating launcher icons..."
+            if [ -n "$SOURCE_ICON" ]; then
+              echo "Using source icon: $SOURCE_ICON"
+              for density in "mdpi:48" "hdpi:72" "xhdpi:96" "xxhdpi:144" "xxxhdpi:192"; do
+                d="${density%%:*}"
+                s="${density##*:}"
+                mkdir -p "$RES_DIR/mipmap-$d"
+                convert "$SOURCE_ICON" -resize "${s}x${s}^" -gravity center -extent "${s}x${s}" "$RES_DIR/mipmap-$d/ic_launcher.png"
+                convert "$SOURCE_ICON" -resize "${s}x${s}^" -gravity center -extent "${s}x${s}" "$RES_DIR/mipmap-$d/ic_launcher_round.png"
+              done
+
+              mkdir -p "$RES_DIR/drawable"
+              convert "$SOURCE_ICON" -resize 288x288^ -gravity center -extent 288x288 -background none -extent 432x432 "$RES_DIR/drawable/ic_launcher_foreground.png"
+            else
+              for density in "mdpi:48" "hdpi:72" "xhdpi:96" "xxhdpi:144" "xxxhdpi:192"; do
+                d="${density%%:*}"
+                s="${density##*:}"
+                mkdir -p "$RES_DIR/mipmap-$d"
+                convert -size "${s}x${s}" xc:'#B82541' "$RES_DIR/mipmap-$d/ic_launcher.png"
+                convert -size "${s}x${s}" xc:'#B82541' "$RES_DIR/mipmap-$d/ic_launcher_round.png"
+              done
+            fi
+
+            mkdir -p "$RES_DIR/mipmap-anydpi-v26"
+            cat << 'EOF' > "$RES_DIR/mipmap-anydpi-v26/ic_launcher.xml"
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+</adaptive-icon>
+EOF
+            cp "$RES_DIR/mipmap-anydpi-v26/ic_launcher.xml" "$RES_DIR/mipmap-anydpi-v26/ic_launcher_round.xml"
+
+            mkdir -p "$RES_DIR/values"
+            if [ ! -f "$RES_DIR/values/colors.xml" ]; then
+              cat << 'EOF' > "$RES_DIR/values/colors.xml"
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#B82541</color>
+</resources>
+EOF
+            fi
+            echo "Icons verified and ready."
+          else
+            echo "Icons already exist in $RES_DIR"
+          fi
+
       - name: Build Debug APK
         working-directory: android-app
         run: gradle assembleDebug --no-daemon --stacktrace
