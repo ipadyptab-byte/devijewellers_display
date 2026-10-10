@@ -50,6 +50,7 @@ import BranchManager from "./components/BranchManager";
 import {
   Tv,
   Smartphone,
+  Share2,
   LayoutDashboard,
   Video,
   Image,
@@ -493,14 +494,25 @@ const getInitialState = (key, defaultState) => {
 
   // Sync to database triggers (localstorage helper)
   const saveToStorage = (key: string, data: any) => {
-    localStorage.setItem(`asm_${key}`, JSON.stringify(data));
+    try {
+      localStorage.setItem(`asm_${key}`, JSON.stringify(data));
+    } catch (e) {
+      console.warn(`localStorage quota exceeded for asm_${key}:`, e);
+    }
 
     // Also save to database endpoint
     fetch(`/api/state/${key}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ payload: data }),
-    }).catch((err) => console.error("API sync error:", err));
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text().catch(() => "");
+          console.error(`Failed to sync ${key} to server (${res.status}):`, text);
+        }
+      })
+      .catch((err) => console.error("API sync error:", err));
   };
 
   // State update proxies to keep storage aligned
@@ -628,10 +640,10 @@ const getInitialState = (key, defaultState) => {
       accent: "text-[#D4AF37]",
     },
     { id: "mobile_control", label: "Mobile Controller", icon: Smartphone },
+    { id: "sale_status", label: "WhatsApp Status Share", icon: Share2, accent: "text-emerald-400" },
     { id: "rate_sync", label: "Rate Sync Master", icon: RefreshCw },
     { id: "media_manager", label: "Media Signage Desk", icon: Video },
     { id: "background_manager", label: "Background Images", icon: Image },
-    { id: "sale_status", label: "Seasonal Status Tags", icon: Activity },
     { id: "branch_manager", label: "Branch Management", icon: Building2 },
   ];
 
