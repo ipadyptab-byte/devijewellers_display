@@ -406,42 +406,39 @@ export default function SaleStatus({
       const { blob, dataUrl } = generated;
 
       const file = new File([blob], FILENAME, { type: "image/png" });
-      onTriggerLog?.("WHATSAPP_SHARE", "Initiated WhatsApp status share flow");
+      onTriggerLog?.("WHATSAPP_SHARE", "Initiated WhatsApp status image share");
 
-      // 1) Try full Web Share with files (Android Chrome/Edge/Samsung, modern iOS)
+      // 1) If running inside our Android App with JavaScript Interface, use native Android sharing
+      const win = window as any;
+      if (win?.AndroidNative?.shareImage) {
+        try {
+          win.AndroidNative.shareImage(dataUrl, "Today's Rates", "", "com.whatsapp");
+          return;
+        } catch (androidErr) {
+          console.warn("AndroidNative.shareImage failed, falling back to Web Share", androidErr);
+        }
+      }
+
+      // 2) Try Web Share API with image file ONLY (Supported on Android Chrome/Edge, iOS Safari, etc.)
       const nav = navigator as any;
       if (nav?.canShare && nav.canShare({ files: [file] })) {
-        await nav.share({ files: [file], title: "Today's Sale Rates" });
+        await nav.share({ files: [file] });
         return;
       }
 
-      // 2) Try basic Web Share with text/url (older Safari/Android)
-      if (nav?.share) {
-        // Some browsers cannot share files but can share text/url
-        // We include a short caption and instruct to save from preview if needed
-        await nav.share({
-          title: "Today's Sale Rates",
-          text: "Today's sale rates from Devi Jewellers. If the image didn't attach, long-press the preview to save first.",
-        });
-        // Also show preview to allow user to save image if file-sharing wasn't supported
-        setPreviewUrl(dataUrl);
-        return;
-      }
-
-      // 3) WhatsApp web deep-link fallback (cannot attach image programmatically)
-      const message = "Today's sale rates from Devi Jewellers. Please see the attached image.";
-      const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-      window.open(waUrl, "_blank");
-
-      // Show preview so user can long-press/save and attach in WhatsApp
+      // 3) If browser/WebView does not support file sharing (e.g. WebView without native bridge),
+      // do NOT navigate to whatsapp:// or wa.me/?text= as that cannot attach images and throws errors in WebView.
+      // Instead, save/download the image and display the full-screen preview with instructions.
+      await saveBlobToGallery(blob, FILENAME, dataUrl);
       setPreviewUrl(dataUrl);
-    } catch (e) {
-      console.error("Share failed", e);
-      // Show preview so user can save manually
-      try {
-        setPreviewUrl((await generateImage())?.dataUrl || null);
-      } catch {
-        // ignore
+    } catch (e: any) {
+      if (e?.name !== "AbortError") {
+        console.error("Share failed", e);
+        try {
+          setPreviewUrl((await generateImage())?.dataUrl || null);
+        } catch {
+          // ignore
+        }
       }
     } finally {
       setIsWorking("idle");
