@@ -38,7 +38,8 @@ import {
   Pause,
   AlertTriangle,
   VolumeX,
-  RotateCw
+  RotateCw,
+  Share2
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -98,10 +99,10 @@ export default function AdminDashboard({
   );
   
   // Local state for Color Customizations
-  const [customPrimaryBg, setCustomPrimaryBg] = useState<string>(displaySetting.customPrimaryBg || '#0B0B0D');
-  const [customSecondaryBg, setCustomSecondaryBg] = useState<string>(displaySetting.customSecondaryBg || '#15161A');
-  const [customCardBg, setCustomCardBg] = useState<string>(displaySetting.customCardBg || '#161619');
-  const [customGoldColor, setCustomGoldColor] = useState<string>(displaySetting.customGoldColor || '#D4AF37');
+  const [customPrimaryBg, setCustomPrimaryBg] = useState<string>(displaySetting.customPrimaryBg || '#101218');
+  const [customSecondaryBg, setCustomSecondaryBg] = useState<string>(displaySetting.customSecondaryBg || '#181A24');
+  const [customCardBg, setCustomCardBg] = useState<string>(displaySetting.customCardBg || '#1B1E2B');
+  const [customGoldColor, setCustomGoldColor] = useState<string>(displaySetting.customGoldColor || '#FFD700');
 
   // System Config states
   const [company, setCompany] = useState<string>(systemConfig?.companyName || '');
@@ -140,10 +141,10 @@ export default function AdminDashboard({
     setMediaLoopEnabled(displaySetting.mediaLoopEnabled !== false);
     setRotateBackgroundEnabled(displaySetting.rotateBackgroundEnabled || false);
     setVisibleRates(displaySetting.visibleRates || ['gold24k', 'gold22k', 'gold20k', 'gold18k', 'silver', 'platinum']);
-    setCustomPrimaryBg(displaySetting.customPrimaryBg || '#0B0B0D');
-    setCustomSecondaryBg(displaySetting.customSecondaryBg || '#15161A');
-    setCustomCardBg(displaySetting.customCardBg || '#161619');
-    setCustomGoldColor(displaySetting.customGoldColor || '#D4AF37');
+    setCustomPrimaryBg(displaySetting.customPrimaryBg || '#101218');
+    setCustomSecondaryBg(displaySetting.customSecondaryBg || '#181A24');
+    setCustomCardBg(displaySetting.customCardBg || '#1B1E2B');
+    setCustomGoldColor(displaySetting.customGoldColor || '#FFD700');
   }, [displaySetting]);
 
   useEffect(() => {
@@ -359,16 +360,33 @@ export default function AdminDashboard({
           </p>
         </div>
         
-        <div className="flex items-center gap-2 bg-black/50 px-3.5 py-1.5 rounded-full border border-[#D4AF37]/20">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-          <span className="text-[10px] font-mono uppercase tracking-[0.15em] text-[#D4AF37] font-bold">
-            System Live: Sync Active
-          </span>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            id="btn-whatsapp-sale-status"
+            onClick={() => onNavigate('sale_status')}
+            className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-600 hover:from-emerald-500 hover:to-green-400 text-white font-bold text-xs px-4 py-2 rounded-full border border-emerald-400/50 shadow-lg shadow-emerald-950/50 hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all duration-200 ring-2 ring-emerald-500/20"
+            title="Open WhatsApp Status Poster & Daily Rate Card Generator"
+          >
+            <div className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+              <Share2 className="w-2.5 h-2.5 text-white" />
+            </div>
+            <span className="tracking-wide">WhatsApp Status Poster</span>
+            <span className="text-[9px] bg-emerald-900/70 text-emerald-200 border border-emerald-400/30 px-1.5 py-0.5 rounded-full font-mono uppercase font-semibold">
+              Live
+            </span>
+          </button>
+          <div className="flex items-center gap-2 bg-black/50 px-3.5 py-2 rounded-full border border-[#D4AF37]/20">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+            <span className="text-[10px] font-mono uppercase tracking-[0.15em] text-[#D4AF37] font-bold">
+              System Live: Sync Active
+            </span>
+          </div>
         </div>
       </div>
 
       {/* CORE OVERVIEW METRICS GRID */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4" id="dashboard-metric-cards">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4" id="dashboard-metric-cards">
         
         {/* Metric 1 */}
         <div 
@@ -400,6 +418,25 @@ export default function AdminDashboard({
           </div>
         </div>
 
+        {/* Metric 3 - WhatsApp Status Poster Direct Card */}
+        <div 
+          onClick={() => onNavigate('sale_status')}
+          className="p-4 rounded-md bg-gradient-to-br from-[#15161A] via-[#102217] to-[#15161A] border border-emerald-500/40 hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-950/50 flex flex-col justify-between cursor-pointer transition-all group shadow-sm"
+        >
+          <div className="flex justify-between items-start text-zinc-500 mb-2">
+            <span className="text-[10px] font-mono tracking-wider uppercase text-emerald-400 font-bold flex items-center gap-1">
+              <Share2 className="w-3.5 h-3.5 text-emerald-400" /> WhatsApp
+            </span>
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          </div>
+          <div>
+            <p className="text-base font-bold font-serif text-white group-hover:text-emerald-300 transition-colors">Daily Rate Poster</p>
+            <p className="text-[9px] text-emerald-400 mt-1 font-mono uppercase tracking-widest font-bold flex items-center gap-1">
+              Open Status Studio →
+            </p>
+          </div>
+        </div>
+
         {/* Metric 4 */}
         <div className="p-4 rounded-md bg-[#15161A] border border-[#D4AF37]/25 flex flex-col justify-between hover:border-[#D4AF37]/50 transition-all">
           <div className="flex justify-between items-start text-zinc-500 mb-2">
@@ -412,7 +449,7 @@ export default function AdminDashboard({
           </div>
         </div>
 
-        {/* Metric 6 */}
+        {/* Metric 5 */}
         <div className="p-4 rounded-md bg-[#15161A] border border-[#D4AF37]/25 flex flex-col justify-between hover:border-[#D4AF37]/50 transition-all">
           <div className="flex justify-between items-start text-zinc-500 mb-2">
             <span className="text-[10px] font-mono tracking-wider uppercase text-[#D4AF37]/80">System Health</span>
