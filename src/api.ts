@@ -735,7 +735,7 @@ apiRouter.post("/gemini/generate-status-bg", async (req, res) => {
                   const mime = part.inlineData.mimeType || "image/png";
                   return res.json({
                     imageUrl: `data:${mime};base64,${part.inlineData.data}`,
-                    notice: `âœ¨ Direct Gemini AI Image (${modelName}) synthesized for your prompt!`,
+                    notice: `✨ Direct Gemini AI Image (${modelName}) synthesized for your prompt!`,
                     isDirectAi: true,
                   });
                 }
@@ -778,7 +778,7 @@ apiRouter.post("/gemini/generate-status-bg", async (req, res) => {
           const mime = contentType.split(";")[0] || "image/jpeg";
           return res.json({
             imageUrl: `data:${mime};base64,${base64}`,
-            notice: "âœ¨ Newly synthesized AI Image generated for your prompt!",
+            notice: "✨ Newly synthesized AI Image generated for your prompt!",
             isDirectAi: true,
           });
         }
@@ -824,10 +824,11 @@ apiRouter.post("/gemini/generate-status-bg", async (req, res) => {
       imageUrl: chosenUrl,
       notice: geminiQuotaNotice
         ? `${geminiQuotaNotice} Selected ${categoryNames[targetCategory] || "Devi Jewellers Gold"} style #${chosenIndex + 1}. Click again for next variation, or use "Upload Photo" directly!`
-        : `âœ¨ Devi Jewellers Gold Jewellery (${categoryNames[targetCategory] || "Pure 22K Gold"} #${chosenIndex + 1}) loaded! Click again to generate next variation.`,
+        : `✨ Devi Jewellers Gold Jewellery (${categoryNames[targetCategory] || "Pure 22K Gold"} #${chosenIndex + 1}) loaded! Click again to generate next variation.`,
     });
   } catch (err: any) {
     console.error("AI background error:", err);
     res.status(500).json({ error: err.message || "Failed to generate AI background" });
   }
 });
+
