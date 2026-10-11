@@ -242,10 +242,10 @@ export default function MediaManager({
 
   // Seed options for quick luxury catalog images
   const PRESET_MOCK_ASSETS = [
-    { title: 'Royal Kundan Neckpiece', url: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200' },
-    { title: 'Fine Solitaire Cut Rings', url: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80&w=1200' },
-    { title: 'Rose Gold Shimmer Bangles', url: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&q=80&w=1200' },
-    { title: 'Heritage Golden Choker', url: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=1200' }
+    { title: 'Devi Jewellers Royal Kundan Gold Neckpiece', url: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200' },
+    { title: 'Devi Jewellers Fine Gold & Solitaire Cut Rings', url: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80&w=1200' },
+    { title: 'Devi Jewellers 22K Gold Shimmer Bangles', url: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&q=80&w=1200' },
+    { title: 'Devi Jewellers Heritage 22K Golden Choker', url: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=1200' }
   ];
 
   const filteredMedia = filterType === 'all' 
