@@ -94,10 +94,10 @@ export const INITIAL_DISPLAY_SETTING: DisplaySetting = {
   announcementText: '🔔 Dhanteras Bookings Open! Block your gold rate with only 10% advance payment. Visit nearest counter for details.',
   isBlackout: false,
   isPaused: false,
-  customPrimaryBg: '#0B0B0D',
-  customSecondaryBg: '#15161A',
-  customCardBg: '#161619',
-  customGoldColor: '#D4AF37',
+  customPrimaryBg: '#101218',
+  customSecondaryBg: '#181A24',
+  customCardBg: '#1B1E2B',
+  customGoldColor: '#FFD700',
   visibleRates: ['gold24k', 'gold22k', 'gold20k', 'gold18k', 'silver', 'platinum'],
   mediaLoopEnabled: true,
   showDate: true
@@ -106,7 +106,7 @@ export const INITIAL_DISPLAY_SETTING: DisplaySetting = {
 export const INITIAL_MEDIA: MediaItem[] = [
   {
     id: 'm1',
-    title: 'Imperial Bridal Collection Hero Banner',
+    title: 'Devi Jewellers Imperial 22K Bridal Gold Collection',
     type: 'banner',
     url: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200',
     startDate: '2026-06-01',
@@ -116,7 +116,7 @@ export const INITIAL_MEDIA: MediaItem[] = [
   },
   {
     id: 'm2',
-    title: 'Traditional Gold Bangles Showcase',
+    title: 'Devi Jewellers Traditional 22K Gold Bangles Showcase',
     type: 'banner',
     url: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&q=80&w=1200',
     startDate: '2026-06-01',
@@ -126,7 +126,7 @@ export const INITIAL_MEDIA: MediaItem[] = [
   },
   {
     id: 'm3',
-    title: 'Flawless Diamond Solitaire Rings',
+    title: 'Devi Jewellers 22K Gold & Diamond Rings',
     type: 'gallery',
     url: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80&w=1200',
     startDate: '2026-05-15',
@@ -136,7 +136,7 @@ export const INITIAL_MEDIA: MediaItem[] = [
   },
   {
     id: 'm4',
-    title: 'Kundan Antique Choker Series',
+    title: 'Devi Jewellers Kundan Antique Gold Choker Series',
     type: 'gallery',
     url: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=1200',
     startDate: '2026-06-05',
