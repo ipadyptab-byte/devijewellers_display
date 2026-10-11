@@ -26,6 +26,7 @@ export interface GenerateBgRequest {
   promptType: "plain_gold" | "marathi_lady" | "royal_gold" | "custom";
   customPrompt?: string;
   aspectRatio?: "9:16" | "1:1" | "16:9" | "3:4" | "4:3";
+  seed?: number;
 }
 
 export interface GenerateBgResponse {
