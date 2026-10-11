@@ -320,24 +320,21 @@ export default function SaleStatus({
   // Save/share image across Android/iOS browsers and in-app WebViews
   const saveBlobToGallery = async (blob: Blob, filename: string, dataUrl?: string) => {
     try {
+      const win = window as any;
+
+      // 1) If running inside our Android App with JavaScript Interface, use native Android MediaStore save!
+      if (win?.AndroidNative?.saveImageToGallery && dataUrl) {
+        try {
+          const res = win.AndroidNative.saveImageToGallery(dataUrl, filename);
+          if (res === "SUCCESS") return true;
+        } catch (androidErr) {
+          console.warn("AndroidNative.saveImageToGallery failed, falling back to web download", androidErr);
+        }
+      }
+
       const file = new File([blob], filename, { type: "image/png" });
 
-      // 1) Prefer native share with files where supported
-      const nav = navigator as any;
-      if (nav?.canShare && nav.canShare({ files: [file] })) {
-        await nav.share({ files: [file], title: "Today's Sale Rates" });
-        return;
-      }
-
-      // 2) iOS Safari: download attribute is ignored; navigate to data URL so user can save
-      if (isIOS && dataUrl) {
-        try {
-          window.location.href = dataUrl;
-          return;
-        } catch {}
-      }
-
-      // 3) Anchor download for full browsers (mostly Android)
+      // 2) Anchor download for standard browsers / Android Chrome
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = blobUrl;
@@ -347,10 +344,25 @@ export default function SaleStatus({
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(blobUrl);
-        return;
+        return true;
       }
 
-      // 4) New tab with image (long-press to save)
+      // 3) iOS Safari: download attribute is ignored; navigate to data URL so user can save
+      if (isIOS && dataUrl) {
+        try {
+          window.location.href = dataUrl;
+          return true;
+        } catch {}
+      }
+
+      // 4) Prefer native Web Share with files if direct download fails
+      const nav = navigator as any;
+      if (nav?.canShare && nav.canShare({ files: [file] })) {
+        await nav.share({ files: [file], title: "Today's Sale Rates" });
+        return true;
+      }
+
+      // 5) New tab with image (long-press to save)
       const newTab = window.open();
       if (newTab) {
         newTab.document.title = filename;
@@ -361,32 +373,21 @@ export default function SaleStatus({
         img.style.display = "block";
         newTab.document.body.style.margin = "0";
         newTab.document.body.appendChild(img);
-        return;
+        return true;
       }
 
-      // 5) Last resort: force navigation to data URL derived from blob
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        try {
-          window.location.href = reader.result as string;
-        } catch {
-          // show inline preview overlay
-          setPreviewUrl((reader.result as string) || dataUrl || blobUrl);
-        }
-      };
-      reader.readAsDataURL(blob);
-
-      // Also show inline preview overlay as a UX fallback
+      // 6) Last resort fallback: show inline preview overlay for long-press
       setPreviewUrl(dataUrl || blobUrl);
+      return false;
     } catch (err) {
       console.error("Save image failed", err);
-      // Inline preview overlay so users can long-press save in restrictive envs
       try {
         const blobUrl = URL.createObjectURL(blob);
         setPreviewUrl(dataUrl || blobUrl);
       } catch {
         // ignore
       }
+      return false;
     }
   };
 
@@ -399,13 +400,13 @@ export default function SaleStatus({
       onTriggerLog?.("STATUS_POSTER_DOWNLOAD", "Saved WhatsApp status image to device");
     } catch (e) {
       console.error("Failed to save image", e);
-      // No alert; a preview overlay will appear in restrictive WebViews to allow long-press save
     } finally {
       setIsWorking("idle");
     }
   };
 
-  const handleShareWhatsApp = async () => {
+  // Share to Normal WhatsApp or WhatsApp Business or System Chooser
+  const handleShareWhatsApp = async (targetApp: "normal" | "business" | "any" = "normal") => {
     try {
       setIsWorking("sharing");
       const generated = await generateImage();
@@ -413,29 +414,37 @@ export default function SaleStatus({
       const { blob, dataUrl } = generated;
 
       const file = new File([blob], FILENAME, { type: "image/png" });
-      onTriggerLog?.("WHATSAPP_SHARE", "Initiated WhatsApp status image share");
+      onTriggerLog?.("WHATSAPP_SHARE", `Initiated WhatsApp (${targetApp}) status image share`);
+
+      const win = window as any;
 
       // 1) If running inside our Android App with JavaScript Interface, use native Android sharing
-      const win = window as any;
-      if (win?.AndroidNative?.shareImage) {
+      if (win?.AndroidNative) {
         try {
-          win.AndroidNative.shareImage(dataUrl, "Today's Rates", "", "com.whatsapp");
-          return;
+          if (targetApp === "business" && win.AndroidNative.shareToWhatsAppBusiness) {
+            win.AndroidNative.shareToWhatsAppBusiness(dataUrl, "✨ Devi Jewellers Today's Gold & Silver Rates ✨");
+            return;
+          } else if (targetApp === "normal" && win.AndroidNative.shareToWhatsApp) {
+            win.AndroidNative.shareToWhatsApp(dataUrl, "✨ Devi Jewellers Today's Gold & Silver Rates ✨");
+            return;
+          } else if (win.AndroidNative.shareImage) {
+            const pkg = targetApp === "business" ? "com.whatsapp.w4b" : (targetApp === "normal" ? "com.whatsapp" : "");
+            win.AndroidNative.shareImage(dataUrl, "Devi Jewellers Today's Rates", "✨ Devi Jewellers Today's Gold & Silver Rates ✨", pkg);
+            return;
+          }
         } catch (androidErr) {
-          console.warn("AndroidNative.shareImage failed, falling back to Web Share", androidErr);
+          console.warn("AndroidNative share failed, falling back to Web Share", androidErr);
         }
       }
 
-      // 2) Try Web Share API with image file ONLY (Supported on Android Chrome/Edge, iOS Safari, etc.)
+      // 2) Try Web Share API with image file
       const nav = navigator as any;
       if (nav?.canShare && nav.canShare({ files: [file] })) {
-        await nav.share({ files: [file] });
+        await nav.share({ files: [file], title: "Devi Jewellers Rates" });
         return;
       }
 
-      // 3) If browser/WebView does not support file sharing (e.g. WebView without native bridge),
-      // do NOT navigate to whatsapp:// or wa.me/?text= as that cannot attach images and throws errors in WebView.
-      // Instead, save/download the image and display the full-screen preview with instructions.
+      // 3) Fallback: Save image and display preview for manual share
       await saveBlobToGallery(blob, FILENAME, dataUrl);
       setPreviewUrl(dataUrl);
     } catch (e: any) {
@@ -873,22 +882,34 @@ export default function SaleStatus({
         id="action-footer"
         className="shrink-0 w-full border-t border-gray-800 bg-gray-900/95 shadow-inner z-30"
       >
-        <div className="max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-center gap-3">
+        <div className="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
           <Button
             onClick={handleSaveImage}
-            className="bg-gradient-to-r from-amber-500 to-gold-600 hover:from-amber-600 hover:to-gold-700 text-black px-5 py-2.5 text-sm sm:text-base font-bold rounded-lg shadow-md border border-gold-300/40 cursor-pointer"
+            className="bg-gradient-to-r from-amber-500 to-gold-600 hover:from-amber-600 hover:to-gold-700 text-black px-4 sm:px-5 py-2.5 text-xs sm:text-sm font-bold rounded-lg shadow-md border border-gold-300/40 cursor-pointer flex items-center"
             disabled={isWorking !== "idle"}
           >
-            <i className="fas fa-download mr-2"></i>
-            {isWorking === "saving" ? "Saving..." : "Save Image"}
+            <i className="fas fa-download mr-1.5 sm:mr-2"></i>
+            {isWorking === "saving" ? "Saving to Device..." : "Save Image to Device"}
           </Button>
+
           <Button
-            onClick={handleShareWhatsApp}
-            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 text-sm sm:text-base font-bold rounded-lg shadow-md border border-green-400/30 cursor-pointer"
+            onClick={() => handleShareWhatsApp("normal")}
+            className="bg-[#25D366] hover:bg-[#1EBE5D] text-white px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold rounded-lg shadow-md border border-green-400/30 cursor-pointer flex items-center"
             disabled={isWorking !== "idle"}
+            title="Share to regular WhatsApp"
           >
-            <i className="fab fa-whatsapp mr-2 text-lg"></i>
-            {isWorking === "sharing" ? "Opening Share..." : "Share on WhatsApp"}
+            <i className="fab fa-whatsapp mr-1.5 sm:mr-2 text-base sm:text-lg"></i>
+            {isWorking === "sharing" ? "Sharing..." : "WhatsApp"}
+          </Button>
+
+          <Button
+            onClick={() => handleShareWhatsApp("business")}
+            className="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold rounded-lg shadow-md border border-emerald-400/40 cursor-pointer flex items-center"
+            disabled={isWorking !== "idle"}
+            title="Share to WhatsApp Business"
+          >
+            <i className="fab fa-whatsapp mr-1.5 sm:mr-2 text-base sm:text-lg text-emerald-200"></i>
+            {isWorking === "sharing" ? "Sharing..." : "WA Business"}
           </Button>
         </div>
       </div>
