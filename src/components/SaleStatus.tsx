@@ -73,23 +73,30 @@ export default function SaleStatus({
 
   // Gemini AI Background states
   const [aiBgUrl, setAiBgUrl] = useState<string | null>(null);
-  const [aiPromptType, setAiPromptType] = useState<"plain_gold" | "marathi_lady" | "royal_gold" | "custom">("plain_gold");
+  const [aiPromptType, setAiPromptType] = useState<string>("devi_bridal");
   const [customPromptText, setCustomPromptText] = useState<string>("");
   const [isGeneratingAiBg, setIsGeneratingAiBg] = useState<boolean>(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiNotice, setAiNotice] = useState<string | null>(null);
   const [aspectRatioMode, setAspectRatioMode] = useState<"whatsapp_status" | "full_screen">("whatsapp_status");
   const [showAiControls, setShowAiControls] = useState<boolean>(true);
+  const [transparentBoxes, setTransparentBoxes] = useState<boolean>(true);
+
+  const [seedCounter, setSeedCounter] = useState<number>(() => Math.floor(Math.random() * 100));
 
   const handleGenerateAiBg = async () => {
     try {
       setIsGeneratingAiBg(true);
       setAiError(null);
       setAiNotice(null);
+      const nextSeed = seedCounter + 1;
+      setSeedCounter(nextSeed);
+
       const res = await geminiApi.generateStatusBg({
         promptType: aiPromptType,
         customPrompt: customPromptText,
         aspectRatio: aspectRatioMode === "whatsapp_status" ? "9:16" : "1:1",
+        seed: nextSeed,
       });
 
       if (res.imageUrl) {
@@ -283,7 +290,7 @@ export default function SaleStatus({
       pixelRatio: 2,
       skipFonts: true,
       fontEmbedCSS: "",
-      backgroundColor: theme.background,
+      backgroundColor: aiBgUrl ? "#0f172a" : (theme.background || "#FFF8E1"),
       width,
       height,
       style: {
@@ -470,6 +477,20 @@ export default function SaleStatus({
           <div className="flex items-center gap-2">
             <Button
               size="sm"
+              variant={transparentBoxes ? "default" : "outline"}
+              onClick={() => setTransparentBoxes(!transparentBoxes)}
+              className={`text-[11px] h-7 px-2 cursor-pointer transition-all ${
+                transparentBoxes
+                  ? "bg-amber-500/30 border-amber-400 text-amber-200 font-bold"
+                  : "border-gold-500/40 bg-gray-700/60 hover:bg-gray-700 text-gold-200"
+              }`}
+              title="Toggle Box Transparency: show only numbers and text"
+            >
+              <i className={`fas ${transparentBoxes ? "fa-cube text-amber-400" : "fa-square text-gray-400"} mr-1`}></i>
+              {transparentBoxes ? "Transparent: ON" : "Boxed"}
+            </Button>
+            <Button
+              size="sm"
               variant="outline"
               onClick={() => setAspectRatioMode(prev => prev === "whatsapp_status" ? "full_screen" : "whatsapp_status")}
               className="text-[11px] h-7 px-2 border-gold-500/40 bg-gray-700/60 hover:bg-gray-700 text-gold-200 cursor-pointer"
@@ -491,51 +512,64 @@ export default function SaleStatus({
 
         {showAiControls && (
           <div className="space-y-2 text-xs">
-            {/* Theme selector */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+            {/* Theme selector - 100% Gold Jewellery & Devi Jewellers */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
               <button
                 type="button"
-                onClick={() => setAiPromptType("plain_gold")}
+                onClick={() => setAiPromptType("devi_bridal")}
                 className={`px-2 py-1.5 rounded-lg border text-left transition-all flex items-center gap-1.5 cursor-pointer ${
-                  aiPromptType === "plain_gold"
+                  aiPromptType === "devi_bridal"
                     ? "bg-amber-500/20 border-gold-400 text-amber-200 font-bold"
                     : "bg-gray-700/40 border-gray-600 text-gray-300 hover:bg-gray-700"
                 }`}
               >
-                <span>🌟</span>
-                <span className="truncate">Plain Gold</span>
+                <span>👑</span>
+                <span className="truncate">Devi Bridal Gold</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => setAiPromptType("marathi_lady")}
+                onClick={() => setAiPromptType("devi_antique_choker")}
                 className={`px-2 py-1.5 rounded-lg border text-left transition-all flex items-center gap-1.5 cursor-pointer ${
-                  aiPromptType === "marathi_lady"
+                  aiPromptType === "devi_antique_choker"
                     ? "bg-amber-500/20 border-gold-400 text-amber-200 font-bold"
                     : "bg-gray-700/40 border-gray-600 text-gray-300 hover:bg-gray-700"
                 }`}
               >
-                <span>💃</span>
-                <span className="truncate">Marathi Lady</span>
+                <span>✨</span>
+                <span className="truncate">Antique Choker</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => setAiPromptType("royal_gold")}
+                onClick={() => setAiPromptType("devi_temple_gold")}
                 className={`px-2 py-1.5 rounded-lg border text-left transition-all flex items-center gap-1.5 cursor-pointer ${
-                  aiPromptType === "royal_gold"
+                  aiPromptType === "devi_temple_gold"
                     ? "bg-amber-500/20 border-gold-400 text-amber-200 font-bold"
                     : "bg-gray-700/40 border-gray-600 text-gray-300 hover:bg-gray-700"
                 }`}
               >
-                <span>🏛️</span>
-                <span className="truncate">Royal Palace</span>
+                <span>📿</span>
+                <span className="truncate">Temple Haram</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAiPromptType("devi_bangles_rings")}
+                className={`px-2 py-1.5 rounded-lg border text-left transition-all flex items-center gap-1.5 cursor-pointer ${
+                  aiPromptType === "devi_bangles_rings"
+                    ? "bg-amber-500/20 border-gold-400 text-amber-200 font-bold"
+                    : "bg-gray-700/40 border-gray-600 text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                <span>💍</span>
+                <span className="truncate">Bangles & Rings</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setAiPromptType("custom")}
-                className={`px-2 py-1.5 rounded-lg border text-left transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-2 py-1.5 rounded-lg border text-left transition-all flex items-center gap-1.5 cursor-pointer col-span-2 sm:col-span-1 ${
                   aiPromptType === "custom"
                     ? "bg-amber-500/20 border-gold-400 text-amber-200 font-bold"
                     : "bg-gray-700/40 border-gray-600 text-gray-300 hover:bg-gray-700"
@@ -548,19 +582,70 @@ export default function SaleStatus({
 
             {/* Custom prompt text area */}
             {aiPromptType === "custom" && (
-              <div>
-                <input
-                  type="text"
-                  placeholder="e.g., Maharashtrian bride with gold thushi & nath..."
-                  value={customPromptText}
-                  onChange={(e) => setCustomPromptText(e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-gold-400"
-                />
+              <div className="space-y-1">
+                <div className="flex gap-1.5">
+                  <input
+                    type="text"
+                    placeholder="e.g. Devi Jewellers royal gold necklace, bridal nath, antique jhumkas..."
+                    value={customPromptText}
+                    onChange={(e) => setCustomPromptText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !isGeneratingAiBg) {
+                        e.preventDefault();
+                        handleGenerateAiBg();
+                      }
+                    }}
+                    className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-gold-400"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleGenerateAiBg}
+                    disabled={isGeneratingAiBg}
+                    className="h-8 px-3 text-xs bg-gold-500 hover:bg-gold-600 text-black font-bold shrink-0 cursor-pointer"
+                  >
+                    Go
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-1 text-[10px] text-gray-400">
+                  <span className="text-gray-500">Quick jewellery ideas:</span>
+                  <button
+                    type="button"
+                    onClick={() => { setCustomPromptText("Devi Jewellers Maharashtrian bride royal gold nath and thushi necklace"); }}
+                    className="hover:text-gold-300 underline cursor-pointer"
+                  >
+                    Devi Bridal Nath
+                  </button>
+                  <span>•</span>
+                  <button
+                    type="button"
+                    onClick={() => { setCustomPromptText("Devi Jewellers handcrafted 22k antique gold choker necklace on velvet"); }}
+                    className="hover:text-gold-300 underline cursor-pointer"
+                  >
+                    Devi 22K Choker
+                  </button>
+                  <span>•</span>
+                  <button
+                    type="button"
+                    onClick={() => { setCustomPromptText("Devi Jewellers temple gold lakshmi haram and royal gold bangles"); }}
+                    className="hover:text-gold-300 underline cursor-pointer"
+                  >
+                    Devi Temple Haram
+                  </button>
+                  <span>•</span>
+                  <button
+                    type="button"
+                    onClick={() => { setCustomPromptText("Devi Jewellers 22k hallmarked pure gold bridal jewellery ornaments"); }}
+                    className="hover:text-gold-300 underline cursor-pointer"
+                  >
+                    Devi Gold Collection
+                  </button>
+                </div>
               </div>
             )}
 
             {/* Actions */}
-            <div className="flex items-center justify-between gap-2 pt-1">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
               <Button
                 onClick={handleGenerateAiBg}
                 disabled={isGeneratingAiBg}
@@ -572,16 +657,41 @@ export default function SaleStatus({
                   </span>
                 ) : (
                   <span className="flex items-center gap-1.5">
-                    <i className="fas fa-sparkles"></i> Generate New AI Background
+                    <i className="fas fa-sparkles"></i> Generate AI Background
                   </span>
                 )}
               </Button>
+
+              {/* Upload Own Photo */}
+              <label className="h-8 text-xs border border-gold-500/50 bg-gray-750 hover:bg-gray-700 text-gold-200 px-2.5 rounded-lg flex items-center gap-1.5 cursor-pointer transition-all shrink-0">
+                <i className="fas fa-cloud-arrow-up text-gold-400"></i>
+                <span>Upload Photo</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        if (event.target?.result) {
+                          setAiBgUrl(event.target.result as string);
+                          setAiNotice(`Applied custom photo "${file.name}" as status backdrop`);
+                          setAiError(null);
+                        }
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+              </label>
 
               {aiBgUrl && (
                 <Button
                   onClick={() => setAiBgUrl(null)}
                   variant="outline"
-                  className="h-8 text-xs border-red-500/40 text-red-400 hover:bg-red-500/10 px-3 cursor-pointer"
+                  className="h-8 text-xs border-red-500/40 text-red-400 hover:bg-red-500/10 px-3 cursor-pointer shrink-0"
                   title="Remove AI Background"
                 >
                   <i className="fas fa-rotate-left mr-1"></i> Reset
@@ -634,41 +744,125 @@ export default function SaleStatus({
           )}
 
           {/* Header */}
-          <div className="relative z-10 shrink-0 bg-gradient-to-r from-gold-600 via-amber-500 to-gold-700 text-black px-3 py-2 flex justify-center items-center shadow-md">
+          <div
+            className={`relative z-10 shrink-0 text-black px-3 py-2 flex justify-center items-center transition-all ${
+              aiBgUrl || transparentBoxes ? "bg-transparent border-none shadow-none" : "shadow-md border-b border-amber-500/50"
+            }`}
+            style={{
+              backgroundColor: aiBgUrl || transparentBoxes ? "transparent" : "#d97706",
+              backgroundImage: aiBgUrl || transparentBoxes ? "none" : "linear-gradient(90deg, #b45309 0%, #f59e0b 50%, #b45309 100%)",
+            }}
+          >
             <img
               src="/logo.png"
               alt="Devi Jewellers Logo"
-              className="h-14 md:h-18 w-[200px] md:w-[280px] object-contain drop-shadow"
+              className="h-14 md:h-18 w-[200px] md:w-[280px] object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.85)]"
             />
           </div>
 
           {/* Capture Area */}
           <div className="relative z-10 flex-1 flex flex-col w-full min-h-0 overflow-hidden">
-            {/* Top bar */}
-            <div className="shrink-0 bg-gradient-to-r from-jewelry-primary/95 to-jewelry-secondary/95 text-white py-1.5 px-3 flex items-center justify-center shadow-md border-b border-gold-400/40 backdrop-blur-sm">
-              <div className="text-center">
-                <div className="text-xs md:text-sm font-semibold text-gold-200">
-                  {format(currentTime, "EEEE dd-MMM-yyyy")}
+            {/* Top bar - Date and Time */}
+            <div
+              className={`shrink-0 py-2 px-3 flex items-center justify-center transition-all ${
+                aiBgUrl || transparentBoxes ? "bg-transparent border-none shadow-none" : "shadow-md border-b-2"
+              }`}
+              style={{
+                backgroundColor: aiBgUrl || transparentBoxes ? "transparent" : "#701a2e",
+                backgroundImage: aiBgUrl || transparentBoxes ? "none" : "linear-gradient(90deg, #581121 0%, #7e1e35 50%, #581121 100%)",
+                borderColor: aiBgUrl || transparentBoxes ? "transparent" : "#f59e0b",
+              }}
+            >
+              <div
+                className={`text-center px-4 py-1.5 rounded-xl flex flex-col items-center justify-center transition-all ${
+                  aiBgUrl || transparentBoxes ? "bg-transparent border-none shadow-none" : "border shadow-lg"
+                }`}
+                style={{
+                  backgroundColor: aiBgUrl || transparentBoxes ? "transparent" : "#2a0812",
+                  borderColor: aiBgUrl || transparentBoxes ? "transparent" : "#f59e0b",
+                  borderWidth: aiBgUrl || transparentBoxes ? "0px" : "1.5px",
+                  boxShadow: aiBgUrl || transparentBoxes ? "none" : "0 2px 6px rgba(0, 0, 0, 0.5)",
+                  minWidth: "250px",
+                }}
+              >
+                <div
+                  className="text-xs sm:text-sm font-extrabold tracking-wide uppercase flex items-center justify-center gap-1.5"
+                  style={{
+                    color: "#fde047",
+                    textShadow: "0 2px 4px rgba(0, 0, 0, 0.95), 0 0 8px rgba(0, 0, 0, 0.9)",
+                  }}
+                >
+                  <span style={{ fontSize: "13px" }}>📅</span>
+                  <span>{format(currentTime, "EEEE, dd-MMM-yyyy")}</span>
                 </div>
-                <div className="text-base md:text-xl font-extrabold text-white tracking-wider">
-                  {format(currentTime, "HH:mm")}
+                <div
+                  className="text-base sm:text-xl font-black tracking-widest flex items-center justify-center gap-2 mt-0.5"
+                  style={{
+                    color: "#ffffff",
+                    textShadow: "0 2px 4px rgba(0, 0, 0, 0.95), 0 0 8px rgba(0, 0, 0, 0.9)",
+                    fontFamily: "'JetBrains Mono', monospace, sans-serif",
+                  }}
+                >
+                  <span style={{ fontSize: "14px", color: "#fde047" }}>⏰</span>
+                  <span>{format(currentTime, "hh:mm a")}</span>
+                  <span
+                    className="text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded ml-1"
+                    style={{
+                      backgroundColor: aiBgUrl || transparentBoxes ? "transparent" : "rgba(133, 30, 62, 0.7)",
+                      color: "#fef08a",
+                      border: aiBgUrl || transparentBoxes ? "none" : "1px solid rgba(253, 224, 71, 0.5)",
+                      textShadow: "0 1px 2px rgba(0, 0, 0, 0.9)",
+                    }}
+                  >
+                    IST
+                  </span>
                 </div>
               </div>
             </div>
 
             {/* Title */}
-            <div className="shrink-0 bg-gradient-to-r from-gold-600 via-amber-500 to-gold-700 text-white text-center py-1 md:py-1.5 shadow">
-              <h2 className="font-display font-black text-sm sm:text-base md:text-2xl drop-shadow text-amber-950 tracking-wider">
+            <div
+              className={`shrink-0 text-center py-1.5 md:py-2 transition-all ${
+                aiBgUrl || transparentBoxes ? "bg-transparent shadow-none" : "shadow"
+              }`}
+              style={{
+                backgroundColor: aiBgUrl || transparentBoxes ? "transparent" : "#d97706",
+                backgroundImage: aiBgUrl || transparentBoxes ? "none" : "linear-gradient(90deg, #b45309 0%, #f59e0b 50%, #b45309 100%)",
+                borderBottom: "none",
+              }}
+            >
+              <h2
+                className="font-display font-black text-sm sm:text-base md:text-xl tracking-wider uppercase"
+                style={{
+                  color: "#fde047",
+                  textShadow: "0 2px 4px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.9)",
+                }}
+              >
                 TODAY'S SALE RATES
               </h2>
             </div>
 
             {/* Rate Cards */}
             <div className="flex-1 min-h-0 flex flex-col gap-2 p-2 sm:p-2.5 overflow-hidden">
-              <RateCard title="24K GOLD (Per 10 gms)" value={currentRates.gold_24k_sale} hasBg={!!aiBgUrl} />
-              <RateCard title="22K GOLD (Per 10 gms)" value={currentRates.gold_22k_sale} hasBg={!!aiBgUrl} />
-              <RateCard title="18K GOLD (Per 10 gms)" value={currentRates.gold_18k_sale} hasBg={!!aiBgUrl} />
-              <RateCard title="SILVER (Per KG)" value={currentRates.silver_per_kg_sale} hasBg={!!aiBgUrl} />
+              <RateCard title="24K GOLD (Per 10 gms)" value={currentRates.gold_24k_sale} hasBg={!!aiBgUrl || transparentBoxes} />
+              <RateCard title="22K GOLD (Per 10 gms)" value={currentRates.gold_22k_sale} hasBg={!!aiBgUrl || transparentBoxes} />
+              <RateCard title="18K GOLD (Per 10 gms)" value={currentRates.gold_18k_sale} hasBg={!!aiBgUrl || transparentBoxes} />
+              <RateCard title="SILVER (Per KG)" value={currentRates.silver_per_kg_sale} hasBg={!!aiBgUrl || transparentBoxes} />
+            </div>
+
+            {/* Devi Jewellers Hallmark Authenticity Footer Badge */}
+            <div className="shrink-0 pb-2 text-center">
+              <p
+                className="text-[10px] sm:text-xs font-black tracking-widest uppercase flex items-center justify-center gap-1.5"
+                style={{
+                  color: "#fde047",
+                  textShadow: "0 2px 4px rgba(0, 0, 0, 0.95), 0 0 8px rgba(0, 0, 0, 0.9)",
+                }}
+              >
+                <span>✦</span>
+                <span>DEVI JEWELLERS • 100% BIS 916 HALLMARKED GOLD</span>
+                <span>✦</span>
+              </p>
             </div>
           </div>
         </div>
@@ -750,19 +944,56 @@ function RateCard({ title, value, hasBg }: { title: string; value: number | stri
 
   return (
     <div
-      className={`flex-1 min-h-0 w-full border-2 border-gold-400 flex flex-col shadow-lg rounded-2xl overflow-hidden transition-all ${
-        hasBg
-          ? "bg-white/90 backdrop-blur-md shadow-amber-950/30"
-          : "bg-white shadow-md"
+      className={`flex-1 min-h-0 w-full flex flex-col justify-center rounded-xl overflow-hidden transition-all ${
+        hasBg ? "bg-transparent border-0 border-none shadow-none" : "border-2 shadow-md bg-white border-amber-500 rounded-2xl"
       }`}
+      style={{
+        backgroundColor: hasBg ? "transparent" : "#ffffff",
+        borderColor: hasBg ? "transparent" : "#f59e0b",
+        border: hasBg ? "none" : "2px solid #f59e0b",
+        boxShadow: hasBg ? "none" : "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+      }}
     >
-      <div className="flex items-center justify-between w-full px-3 py-1 sm:py-1.5 shrink-0 bg-gradient-to-r from-amber-100/90 via-gold-50/80 to-amber-100/90 border-b border-gold-300">
-        <h4 className="text-xs sm:text-sm md:text-lg font-black text-gray-950 uppercase tracking-wide">{title}</h4>
-        <div className="w-6 h-6 md:w-8 md:h-8 bg-jewelry-primary rounded-full gold-shimmer flex items-center justify-center shadow-sm">
-          <i className="fas fa-rupee-sign text-white text-xs sm:text-sm"></i>
+      <div
+        className={`flex items-center justify-between w-full px-2.5 py-0.5 shrink-0 ${
+          hasBg ? "bg-transparent border-none shadow-none" : "border-b px-3 py-1 sm:py-1.5"
+        }`}
+        style={{
+          backgroundColor: hasBg ? "transparent" : "#fef3c7",
+          backgroundImage: hasBg ? "none" : "linear-gradient(90deg, #fef3c7 0%, #fffbeb 50%, #fef3c7 100%)",
+          borderColor: hasBg ? "transparent" : "#fcd34d",
+          borderBottom: hasBg ? "none" : "1px solid #fcd34d",
+        }}
+      >
+        <h4
+          className="text-xs sm:text-sm md:text-base font-black uppercase tracking-wider"
+          style={{
+            color: hasBg ? "#fde047" : "#09090b",
+            textShadow: hasBg
+              ? "0 2px 4px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.9)"
+              : "none",
+          }}
+        >
+          {title}
+        </h4>
+        <div
+          className={`flex items-center justify-center ${
+            hasBg ? "bg-transparent border-none shadow-none" : "w-5 h-5 sm:w-6 sm:h-6 rounded-full shadow-sm"
+          }`}
+          style={{
+            backgroundColor: hasBg ? "transparent" : "#851e3e",
+            border: hasBg ? "none" : "none",
+          }}
+        >
+          <i
+            className={`fas fa-rupee-sign ${hasBg ? "text-amber-300" : "text-white"} text-xs sm:text-sm`}
+            style={{
+              textShadow: hasBg ? "0 2px 4px rgba(0, 0, 0, 0.95)" : "none",
+            }}
+          ></i>
         </div>
       </div>
-      <div className="flex-1 min-h-0 flex items-center justify-center overflow-hidden p-1">
+      <div className="flex-1 min-h-0 flex items-center justify-center overflow-hidden p-0.5">
         <svg
           className="w-full h-full max-h-12 sm:max-h-16 md:max-h-20"
           viewBox={`0 0 ${viewBoxWidth} 40`}
@@ -773,14 +1004,19 @@ function RateCard({ title, value, hasBg }: { title: string; value: number | stri
             y="50%"
             dominantBaseline="central"
             textAnchor="middle"
-            fill="#1e3a8a"
-            stroke="#1e3a8a"
-            strokeWidth="0.8"
-            strokeLinejoin="round"
+            fill={hasBg ? "#ffffff" : "#1e3a8a"}
+            stroke={hasBg ? "#000000" : "#1e3a8a"}
+            strokeWidth={hasBg ? "1.4" : "0.8"}
+            paintOrder="stroke fill"
             className="font-black"
             fontFamily="'League Spartan', 'Gill Sans Ultra Bold', 'Arial Black', sans-serif"
             fontWeight="900"
-            fontSize="28"
+            fontSize="30"
+            style={{
+              filter: hasBg
+                ? "drop-shadow(0px 2px 6px rgba(0, 0, 0, 0.95)) drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.9))"
+                : "none",
+            }}
           >
             {text}
           </text>
